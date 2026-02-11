@@ -4,6 +4,7 @@ import Breadcrumb from "./breadcrumb";
 import GoogleMaps from "./google_maps";
 import Modal from "./modal";
 import NavBarItems from "./nav_bar_items";
+import Icon from "./icon";
 //
 import SearchModal from "./search_modal";
 import RealEstateCard from "./real_estate_card";
@@ -33,6 +34,7 @@ export {
   GoogleMaps,
   Modal,
   NavBarItems,
+  Icon,
   //
   SearchModal,
   RealEstateCard,

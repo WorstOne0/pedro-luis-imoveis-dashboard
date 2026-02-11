@@ -23,8 +23,8 @@ const routesNames = [
   { name: "Notificações", route: "notifications", icon: (props: any) => <MdNotifications {...props} /> },
   { name: "Configurações", route: "settings", icon: (props: any) => <MdOutlineSettings {...props} /> },
   //
-  { name: "Adicionar", route: "add", icon: (props: any) => <IoAdd {...props} /> },
-  { name: "Editar", route: "edit", icon: (props: any) => <FaEdit {...props} /> },
+  { name: "Adicionar", route: "add" },
+  { name: "Editar", route: "edit" },
 ] as RouteNames[];
 
 export default function Breadcrumb() {
@@ -33,15 +33,13 @@ export default function Breadcrumb() {
   const routes = pathName.split("/").filter((route) => route !== "");
 
   const buildBreadcrumb = ({ route }: { route: string }) => {
-    const isCurrentRoute = route === pathName;
-    const routeIcon = routesNames.find((r) => r.route === route)?.icon || ((props: any) => (<FaIdCard {...props} />) as any);
+    // FaIdCard
+    const routeIcon = routesNames.find((r) => r.route === route)?.icon || ((props: any) => (<div />) as any);
 
     return (
       <div className="flex items-center select-none">
-        {routeIcon({ size: 16, color: isCurrentRoute ? "black" : "grey" })}
-        <span className={`ml-[1rem] text-[1.4rem] ${isCurrentRoute ? "text-black" : "text-gray-500"}	`}>
-          {routesNames.find((r) => r.route === route)?.name || route}
-        </span>
+        {routeIcon({ size: 16, color: "#003b8f", className: "mr-[1rem]" })}
+        <span className={`text-[1.2rem] text-black`}>{routesNames.find((r) => r.route === route)?.name || route}</span>
       </div>
     );
   };
@@ -49,12 +47,9 @@ export default function Breadcrumb() {
   return (
     <div className="h-full w-full flex items-center">
       {routes.length > 1 && (
-        <>
-          <div className="h-full w-[5rem] flex items-center justify-center cursor-pointer" onClick={() => history.back()}>
-            <IoArrowBack size={18} />
-          </div>
-          <div className="h-[40%] w-[0.1rem] bg-gray-300"></div>
-        </>
+        <div className="h-full pl-[1.5rem] pr-[0.5rem] flex items-center justify-center cursor-pointer" onClick={() => history.back()}>
+          <IoArrowBack size={18} />
+        </div>
       )}
 
       <div className="h-full min-w-0 grow flex items-center px-[1.5rem]">
@@ -62,7 +57,7 @@ export default function Breadcrumb() {
           return (
             <div key={`breadcrumb_${index}`} className="flex items-center">
               {buildBreadcrumb({ route })}
-              {index < routes.length - 1 && <MdOutlineKeyboardArrowRight size={20} color="grey" className="ml-[1rem] mr-[1rem]" />}
+              {index < routes.length - 1 && <MdOutlineKeyboardArrowRight size={16} color="grey" className="ml-[1rem] mr-[1rem]" />}
             </div>
           );
         })}

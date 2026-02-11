@@ -1,10 +1,6 @@
 "use client";
 
-// Services
-import { withAuth, withHydration } from "@/services";
-
-export default withHydration(withAuth(Dashboard, "protected"));
-function Dashboard() {
+export default function Dashboard() {
   return (
     <div className="h-full w-full flex flex-col p-[1rem] gap-[1rem]">
       <div className="h-[20rem] w-full flex rounded-[0.8rem] bg-primary"></div>

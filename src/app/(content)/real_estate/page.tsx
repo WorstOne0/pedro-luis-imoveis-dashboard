@@ -10,7 +10,6 @@ import { z } from "zod";
 import { Card, Form, InputWithLabel, Pagination, RealEstateCard } from "@/components";
 import { useApiFetch } from "@/hooks";
 import { useRealEstateStore } from "@/store";
-import { withAuth, withHydration } from "@/services";
 //
 import { BsListUl, BsGrid1X2Fill } from "react-icons/bs";
 import { FaSortAmountDown } from "react-icons/fa";
@@ -20,8 +19,7 @@ const FormSchema = z.object({
   search: z.string().email("Invalid email address"),
 });
 
-export default withHydration(withAuth(RealEstate, "protected"));
-function RealEstate() {
+export default function RealEstate() {
   const router = useRouter();
 
   const { realEstateList, setRealEstateList } = useRealEstateStore((state) => state);

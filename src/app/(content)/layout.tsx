@@ -13,8 +13,9 @@ export default function RootLayout({
   return (
     <body className={`h-full w-full flex relative`}>
       <NavBar />
+
       <div className="h-full min-w-0 grow flex flex-col">
-        <div className="h-[4rem] w-full flex mt-[0.8rem]">
+        <div className="min-h-[6rem] h-[6rem] w-full flex border-b-[0.1rem] border-gray-300">
           <div className="min-w-0 grow">
             <Breadcrumb />
           </div>

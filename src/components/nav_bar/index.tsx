@@ -1,31 +1,25 @@
 "use client";
 
-// Next
+// Packages
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { motion, useAnimate } from "framer-motion";
+// Components
+import { Icon, Card } from "@/components";
 //
-import { Card } from "@/components";
-// Icons
-import { MdSpaceDashboard, MdApartment, MdAnalytics, MdNotifications, MdOutlineSettings } from "react-icons/md";
-import { FiLogOut, FiSidebar } from "react-icons/fi";
-
 import logo from "@/../public/logo/logo.png";
 import textLogo from "@/../public/logo/text_logo.png";
 
 export default function NavBar() {
   const pathname = usePathname();
-  const [scope, animate] = useAnimate();
-
   const [isNavOpen, setIsNavOpen] = useState(true);
 
   const buttons = [
-    { value: "/dashboard", name: "Dashboard", icon: (props: any) => <MdSpaceDashboard {...props} /> },
-    { value: "/real_estate", name: "Imóveis", icon: (props: any) => <MdApartment {...props} /> },
-    { value: "/analytics", name: "Análises", icon: (props: any) => <MdAnalytics {...props} /> },
-    { value: "/notifications", name: "Notificações", icon: (props: any) => <MdNotifications {...props} /> },
-    { value: "/settings", name: "Configurações", icon: (props: any) => <MdOutlineSettings {...props} /> },
+    { value: "/dashboard", name: "Dashboard", icon: <Icon name="MdSpaceDashboard" size={18} /> },
+    { value: "/real_estate", name: "Imóveis", icon: <Icon name="MdApartment" size={18} /> },
+    { value: "/analytics", name: "Análises", icon: <Icon name="MdAnalytics" size={18} /> },
+    { value: "/notifications", name: "Notificações", icon: <Icon name="MdNotifications" size={18} /> },
+    { value: "/settings", name: "Configurações", icon: <Icon name="MdOutlineSettings" size={18} /> },
   ];
 
   const createButton = ({ route, index }: { route: any; index: number }) => {
@@ -33,54 +27,58 @@ export default function NavBar() {
       <Card key={`nav_button_${index}`} className="w-full mb-[1rem] last:mb-0" onClick={(e) => e.stopPropagation()}>
         <Link
           href={route.value}
-          className={`w-full flex justify-start items-center gap-3 p-4 cursor-pointer select-none ${
-            pathname === route.value ? "text-primary dark:text-white " : "text-gray-400 dark:text-gray-400"
-          }`}
+          className={`
+            min-h-[3.5rem] h-[3.5rem] w-full flex justify-center items-center gap-3 px-3 cursor-pointer select-none overflow-hidden rounded-[0.8rem] 
+            ${pathname === route.value ? "bg-primary text-white" : "text-primary"}`}
         >
-          {route.icon({ size: 20 })}
-          {isNavOpen && <span className="text-[1.4rem] font-bold">{route.name}</span>}
+          <div>{route.icon}</div>
+          {isNavOpen && <span className={`min-w-0 grow text-[1.4rem] ${pathname === route.value ? "text-white" : "text-black"}`}>{route.name}</span>}
         </Link>
       </Card>
     );
   };
 
-  const handleNavBarSize = () => {
-    if (isNavOpen) {
-      setIsNavOpen(false);
-      animate(scope.current, { width: "6.5rem" });
-
-      return;
-    }
-
-    if (!isNavOpen) {
-      setIsNavOpen(true);
-      animate(scope.current, { width: "22rem" });
-      return;
-    }
-  };
+  const handleNavBarSize = () => setIsNavOpen(!isNavOpen);
 
   return (
-    <motion.nav
-      ref={scope}
-      initial={{ width: "22rem" }}
-      className="h-full flex flex-col bg-gray-100 border-r border-gray-300 px-[1rem] py-[1rem]"
+    <div
+      className={`
+        h-full flex flex-col border-r border-gray-300 px-[1rem] py-[1rem] relative
+        transition-all duration-200 ${isNavOpen ? "min-w-[22rem] w-[22rem]" : "min-w-[6rem] w-[6.5rem]"}
+      `}
       onClick={handleNavBarSize}
     >
-      {/* Logo */}
-      <div className="h-[10rem] w-full flex items-start justify-center">
+      {/* Open/Close Button */}
+      <div
+        className="
+          h-[3rem] w-[3rem] rounded-full flex items-center justify-center border border-gray-300 bg-background
+          absolute top-[6rem] right-[-3rem] -translate-x-1/2 -translate-y-1/2 cursor-pointer
+        "
+      >
+        {isNavOpen ? (
+          <Icon name="MdOutlineKeyboardDoubleArrowLeft" size={16} className="text-gray-500" />
+        ) : (
+          <Icon name="MdOutlineKeyboardDoubleArrowRight" size={16} className="text-gray-500" />
+        )}
+      </div>
+
+      {/* Top */}
+      <div className="w-full flex items-start justify-center">
         <div className="w-full flex justify-between items-center">
           <img className="h-[4.5rem] w-[4.5rem] " src={logo.src} alt="" />
           <img className="min-w-0 grow" src={textLogo.src} alt="" />
         </div>
       </div>
-      {/* Buttons */}
-      <div className="min-h-0 grow w-full flex flex-col items-center justify-center">
+
+      {/* Middle */}
+      <div className="min-h-0 grow w-full flex flex-col items-center justify-center py-3">
         {buttons.map((route, index) => createButton({ route, index }))}
       </div>
-      {/* Footer */}
-      <div className="h-[10rem] flex items-end pb-[1rem]">
+
+      {/* Bottom */}
+      <div className="flex items-end pb-[1rem]">
         <div className={`w-full flex items-center ${isNavOpen ? "flex-row-reverse" : "flex-col justify-center"}`}>
-          <FiLogOut size={22} className={`cursor-pointer ${isNavOpen ? "" : "mb-[1.5rem]"}`} />
+          <Icon name="FiLogOut" size={22} className={`cursor-pointer ${isNavOpen ? "" : "mb-[1.5rem]"}`} />
 
           {isNavOpen && (
             <div className="min-w-0 grow ml-[1rem] flex flex-col">
@@ -91,6 +89,6 @@ export default function NavBar() {
           <img className="w-[4.3rem] h-[4.3rem] rounded-full" src="https://avatars.githubusercontent.com/u/31835808?v=4" alt="" />
         </div>
       </div>
-    </motion.nav>
+    </div>
   );
 }
