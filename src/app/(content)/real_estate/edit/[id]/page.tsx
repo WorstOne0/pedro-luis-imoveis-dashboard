@@ -2,11 +2,8 @@
 
 // Next
 import { useParams } from "next/navigation";
-// Services
-import { withAuth, withHydration } from "@/services";
 
-export default withHydration(withAuth(Edit, "protected"));
-function Edit() {
+export default function Edit() {
   const { id } = useParams<{ id: string }>();
 
   return <div className="h-full w-full">Edit {id}</div>;

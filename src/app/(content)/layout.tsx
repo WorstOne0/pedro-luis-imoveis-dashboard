@@ -3,7 +3,7 @@
 // Components
 import { Breadcrumb, NavBar, NavBarItems, SearchModal } from "@/components";
 // Services
-import { MapProvider } from "@/services";
+import { MapProvider, AuthGuard } from "@/services";
 
 export default function RootLayout({
   children,
@@ -11,24 +11,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <body className={`h-full w-full flex relative`}>
-      <NavBar />
+    <AuthGuard>
+      <div className={`h-full w-full flex relative`}>
+        <NavBar />
 
-      <div className="h-full min-w-0 grow flex flex-col">
-        <div className="min-h-[6rem] h-[6rem] w-full flex border-b-[0.1rem] border-gray-300">
-          <div className="min-w-0 grow">
-            <Breadcrumb />
+        <div className="h-full min-w-0 grow flex flex-col">
+          <div className="min-h-[6rem] h-[6rem] w-full flex border-b-[0.1rem] border-gray-300">
+            <div className="min-w-0 grow">
+              <Breadcrumb />
+            </div>
+
+            <NavBarItems />
           </div>
 
-          <NavBarItems />
+          <div className="min-h-0 min-w-0 grow">
+            <MapProvider>{children}</MapProvider>
+          </div>
         </div>
 
-        <div className="min-h-0 min-w-0 grow">
-          <MapProvider>{children}</MapProvider>
-        </div>
+        <SearchModal />
       </div>
-
-      <SearchModal />
-    </body>
+    </AuthGuard>
   );
 }

@@ -30,7 +30,7 @@ export type User = {
   thumbnail: string;
 };
 
-const useAuthStore = create<AuthStoreType>((set) => ({
+const useAuthStore = create<AuthStoreType>((set, get) => ({
   user: null,
   //
   isAuthenticated: false,
@@ -51,16 +51,19 @@ const useAuthStore = create<AuthStoreType>((set) => ({
     return true;
   },
   getSession: async () => {
-    set({ isLoading: true });
+    if (!get().isAuthenticated) set({ isLoading: true });
 
-    const response = await apiService.get("/session");
-    const isValid = response.data.status == 200;
-
-    set({ isLoading: false, isAuthenticated: isValid, user: response.data.user });
+    try {
+      const response = await apiService.get("/session");
+      const isValid = response.data.status == 200;
+      set({ isLoading: false, isAuthenticated: isValid, user: response.data.user });
+    } catch {
+      set({ isLoading: false, isAuthenticated: false, user: null });
+    }
   },
   logout: () => {
     Cookies.remove("accessToken");
-    set({ user: null });
+    set({ user: null, isAuthenticated: false });
   },
 }));
 

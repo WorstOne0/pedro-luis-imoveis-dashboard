@@ -3,11 +3,10 @@
 // Next
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-// Services
-import { withAuth } from "@/services";
 // Components
 import { Checkbox, Form, InputWithLabel } from "@/components";
 // Icons
@@ -21,11 +20,14 @@ const FormSchema = z.object({
   }),
 });
 
-export default withAuth(Login, "public");
-function Login() {
+export default function Login() {
   //
   const router = useRouter();
-  const { login } = useAuthStore((state) => state);
+  const { login, isAuthenticated } = useAuthStore((state) => state);
+
+  useEffect(() => {
+    if (isAuthenticated) router.replace("/dashboard");
+  }, [isAuthenticated, router]);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),

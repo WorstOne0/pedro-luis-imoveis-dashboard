@@ -1,5 +1,4 @@
 import axios from "axios";
-import { redirect } from "next/navigation";
 import Cookies from "js-cookie";
 
 const apiService = axios.create({
@@ -26,9 +25,8 @@ apiService.interceptors.response.use(
   },
   (error) => {
     // typeof window === 'undefined'
-    if (error.response.status == 401) {
+    if (error.response?.status == 401) {
       Cookies.remove("accessToken");
-      redirect("/login");
     }
 
     return Promise.reject(error);

@@ -3,9 +3,7 @@ import apiService from "./api_service";
 import { MapProvider } from "./google_maps";
 import { ThemeProvider } from "./theme_provider";
 // HOC
-import compose from "./high_order_components/compose";
-import withAuth from "./high_order_components/withAuth";
-import withHydration from "./high_order_components/withHydration";
+import AuthGuard from "./auth_guard";
 
 // Export Components
-export { apiService, MapProvider, ThemeProvider, compose, withAuth, withHydration };
+export { apiService, MapProvider, ThemeProvider, AuthGuard };
