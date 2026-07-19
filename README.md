@@ -1,185 +1,151 @@
 # Pedro Luis Imóveis — Dashboard
 
-> Admin dashboard for managing real estate listings, built with Next.js 15 and React 19.
+> Admin panel for a real estate broker in Cascavel/PR. Listing CRUD with a live
+> card preview, image and video uploads, and portfolio analytics.
+
+One of five repositories that make up the product:
+
+| Repository | Role |
+|---|---|
+| frontend | Public site — map + listings |
+| **dashboard** (this one) | Admin panel — listing CRUD, uploads, auth |
+| backend | REST API |
+| images | Upload, resize and serve photos/video |
+| database | MongoDB container + backup scripts |
 
 ---
 
 ## Features
 
-- **JWT Authentication** — Secure login with token stored in cookies; automatic session validation and redirect on expiry
-- **Role-based Route Guards** — `withAuth` HOC enforces `public` / `protected` route access
-- **Real Estate CRUD** — List, add, and edit property listings with images, address, and attributes
-- **Google Maps Integration** — Interactive map with district polygon overlays for geographic browsing
-- **Search & Filter** — Filter listings by price range, type, rooms, and area
-- **Paginated Listing View** — Grid/list layout toggle with pagination controls
-- **Analytics Page** — Chart-based analytics powered by Recharts
-- **Dark/Light Theme** — System-aware theme switching via `next-themes`
-- **Drag & Drop Uploads** — Image upload via `react-dropzone`
+- **Portfolio dashboard** — listing count, portfolio value, growth over time,
+  breakdown by type and by district, recently added listings. Everything except
+  the two traffic tiles comes from real API data, and the sample tiles are
+  labelled `exemplo` in the UI so they can't be mistaken for real numbers.
+- **Listing form** — four steps (cover → details → location → gallery) with a
+  **live preview** of the public card as you type, rendered by the same component
+  the public site ships.
+- **Uploads** — drag-and-drop for cover and gallery. On edit, the images already
+  saved are shown rather than an empty box.
+- **Map picker** — click to set a listing's coordinates.
+- **Search, filter and sort** the catalogue, with pagination.
+- **JWT auth** with a route guard.
+- **Dark / light mode**, system-aware with a manual toggle.
 
 ---
 
-## Preview
+## Tech stack
 
-The app ships with the following main sections:
+Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS 4 ·
+shadcn/ui · react-hook-form + Zod · Zustand · SWR · Recharts ·
+`@react-google-maps/api`
 
-| Route | Description |
+---
+
+## Getting started
+
+Requires Node 20+, the backend on `:4000` and the images service on `:3200`.
+
+```bash
+npm install
+cp .env.example .env     # then fill it in
+npm run dev              # use a port other than 3000 if the public site is running
+```
+
+### Environment
+
+| Variable | Purpose |
 |---|---|
-| `/login` | Authentication screen |
-| `/dashboard` | Overview / summary cards |
-| `/real_estate` | Paginated listing of all properties |
-| `/real_estate/add` | Form to create a new listing |
-| `/real_estate/edit/[id]` | Edit an existing listing |
-| `/analytics` | Charts and statistics |
-| `/notifications` | Notification center |
-| `/settings` | App settings |
+| `NEXT_PUBLIC_API_URL` | Backend base url |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API` | Google Maps JS API key, for the location picker |
 
 ---
 
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 15 (App Router, Turbopack) |
-| UI Library | React 19 |
-| Styling | Tailwind CSS 4 |
-| Component Primitives | Radix UI |
-| State Management | Zustand |
-| Data Fetching | SWR + Axios |
-| Forms & Validation | React Hook Form + Zod |
-| Maps | @react-google-maps/api |
-| Charts | Recharts |
-| Animations | Framer Motion |
-| Auth | JWT via js-cookie + react-jwt |
-| Language | TypeScript 5 |
-
----
-
-## Project Structure
+## Project structure
 
 ```
 src/
-├── app/
-│   ├── layout.tsx               # Root layout (theme, font)
-│   ├── page.tsx                 # Root redirect
-│   ├── (auth)/
-│   │   └── login/page.tsx       # Login page
-│   └── (content)/
-│       ├── layout.tsx           # Authenticated shell layout (navbar, sidebar)
-│       ├── dashboard/page.tsx   # Dashboard overview
-│       ├── real_estate/         # Listing, add, edit pages
-│       ├── analytics/page.tsx
-│       ├── notifications/page.tsx
-│       └── settings/page.tsx
-├── components/                  # Shared UI components (cards, modals, nav, pagination, etc.)
-├── services/
-│   ├── api_service.ts           # Axios instance with Bearer token interceptor
-│   ├── google_maps.tsx          # Google Maps provider wrapper
-│   ├── theme_provider.tsx       # next-themes wrapper
-│   └── high_order_components/
-│       ├── withAuth.tsx         # Route-level auth guard HOC
-│       └── withHydration.tsx    # SSR hydration guard HOC
-├── store/
-│   ├── useAuthStore.tsx         # Auth state (login, logout, session)
-│   ├── useRealEstateStore.tsx   # Real estate list & selection state
-│   └── useSearchStore.tsx       # Search/filter state
-├── hooks/
-│   └── useApiFetch.ts           # Generic SWR-based data fetching hook
-└── utils/
-    └── districts_geo.js         # GeoJSON data for district polygon overlays
+  app/
+    (auth)/login
+    (content)/
+      layout.tsx          app shell — sidebar + page header
+      dashboard/          portfolio overview
+      real_estate/
+        page.tsx          catalogue grid
+        add/  edit/[id]/
+        _components/      real_estate_form, real_estate_card
+      analytics/  notifications/  settings/
+  components/     shared — nav_bar, page_header, form fields, ui/
+  hooks/          useApiFetch (SWR), useDebounce, useIsMounted
+  lib/            real_estate_options, utils
+  services/       axios, auth guard, google maps, theme
+  store/          useAuthStore, useRealEstateStore, useSearchStore
 ```
 
----
-
-## Installation
-
-**Prerequisites:** Node.js 18+, a running backend at `http://localhost:4000`
-
-```bash
-# 1. Clone the repository
-git clone <repo-url>
-cd pedro_luis_imoveis_dashboard
-
-# 2. Install dependencies
-npm install
-
-# 3. Configure environment variables
-# Create a .env file and add your Google Maps API key:
-echo 'NEXT_PUBLIC_GOOGLE_MAPS_API=your_key_here' > .env
-
-# 4. Start the development server
-npm run dev
-```
+Route-local code lives beside its route in `_components/`. `src/components` is
+reserved for what more than one route uses.
 
 ---
 
-## Usage
+## Notes for anyone reading the code
 
-```bash
-# Development (Turbopack)
-npm run dev
+**The listing card is shared with the public site.** `real_estate_card` here
+mirrors the frontend's component of the same name, and its `preview` variant is
+what the form renders as a live preview — fed form values instead of a saved
+record. Restyle one, restyle the other.
 
-# Production build
-npm run build
-npm start
+**Multipart writes send the record as a JSON string under `metadata`**, with
+`thumbnail` and `images` as file fields. That is what the API expects. Update is
+`PUT /real_estate/:_id`, with the id in the path, not the body.
 
-# Lint
-npm run lint
-```
+**Form controls must live inside `<Form>`.** `InputField`, `SelectField` and the
+rest read from `useFormContext`, so they break outside it.
 
-Open [http://localhost:3000](http://localhost:3000) and log in with your credentials.
+**Sizing goes on `FieldWrapper`, not on the control it wraps.** The wrapper is
+what a flex parent measures; a width left on the inner control is ignored. This
+was a real bug — two selects squeezed the search box to 111px.
 
----
+**The app shell is fixed.** `html, body { overflow: hidden }`; only inner panes
+scroll. Without it the whole page scrolled, and opening a Radix select shifted
+the layout sideways.
 
-## API / Integrations
-
-The dashboard communicates with a REST API running at `http://localhost:4000`.
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/login` | Authenticate and receive `accessToken` |
-| `GET` | `/session` | Validate current session |
-| `GET` | `/real_estate` | Fetch all listings |
-| `POST` | `/real_estate` | Create a listing |
-| `PUT` | `/real_estate/:id` | Update a listing |
-
-All requests include `Authorization: Bearer <token>` automatically via the Axios interceptor. A `401` response clears the cookie and redirects to `/login`.
-
-**Google Maps** — requires `NEXT_PUBLIC_GOOGLE_MAPS_API` set in `.env`.
+**Step from the live form value, not the render closure.** `StepperField` and
+`TagsField` both read via `getValues`, because reading `field.value` in the
+render closure meant several rapid clicks all saw the same stale number.
 
 ---
 
-## Testing
+## Known limitations
 
-Not configured from code — no test suite is present in the repository.
-
----
-
-## Roadmap
-
-- [ ] Role-based permissions (admin vs. agent)
-- [ ] Real-time notifications
-- [ ] Complete analytics charts with live data
-- [ ] Dashboard summary cards connected to backend
-- [ ] Mobile-responsive layout
-- [ ] End-to-end test suite
+- Existing gallery images can't be deleted individually — the API replaces the
+  whole gallery on write, so a per-image delete would be a promise the backend
+  can't keep. Needs a partial-gallery endpoint.
+- `AuthGuard` is client-side only. There is no middleware, so protected pages are
+  served and then hidden.
+- `SearchModal` renders an empty box; Notificações, Análises and Configurações
+  are stubs.
+- The growth chart shows an empty state because every listing shares one import
+  date. It populates as listings are added over time.
+- No automated tests. Verification is manual, against the running backend.
 
 ---
 
-## Contributing
+## Project status and contributions
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feat/your-feature`
-3. Commit your changes: `git commit -m "feat: add your feature"`
-4. Push and open a pull request
+This is a commissioned project built for a specific business. It is **not** an
+open source project and is not accepting contributions, feature requests or
+pull requests.
 
----
+## Copyright and licence
 
-## License
+**Copyright © 2026 Lucca Gabriel. All rights reserved.**
 
-Private project — © 2025 Pedro Luis Imóveis. All rights reserved.
+This repository is published so the source can be **read**, as a portfolio piece
+and for reference. It is deliberately published **without a licence**, which
+under default copyright law means all rights are reserved.
 
----
+Viewing and forking within GitHub are permitted by GitHub's Terms of Service.
+That does **not** grant permission to use, copy, modify, deploy or redistribute
+this code. Third-party dependencies keep their own licences, and Pedro Luis
+Imóveis brand assets are the property of their owner.
 
-**Short description (160 chars):** Admin dashboard for Pedro Luis Imóveis — manage property listings, Google Maps, analytics and auth. Next.js 15 + React 19 + Zustand.
-
-**Suggested GitHub tags:** `nextjs`, `react`, `tailwindcss`, `real-estate`, `dashboard`, `typescript`, `zustand`, `google-maps`, `admin-panel`, `radix-ui`
+See [`COPYRIGHT.md`](COPYRIGHT.md) for the full terms.

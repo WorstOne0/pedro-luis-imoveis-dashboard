@@ -63,8 +63,14 @@ export default function RealEstateCard({
 
     const badge = [realEstate.type && propertyTypeLabel(realEstate.type), SALE_LABELS[realEstate.sale]].filter(Boolean).join(" · ");
 
+    // Only clickable when a caller wants it: the same variant backs the form's
+    // live preview, where clicking must do nothing.
     return (
-      <Card className="w-full bg-card rounded-[1.6rem] overflow-hidden select-none">
+      <Card
+        className={`w-full bg-card rounded-[1.6rem] overflow-hidden select-none
+          ${onClickCallback ? "cursor-pointer hover:shadow-md transition-shadow" : ""}`}
+        onClick={onClickCallback ? handleCardClick : undefined}
+      >
         <div className="h-[18rem] w-full bg-muted flex justify-center items-center relative">
           {cover ? (
             <img className="h-full w-full object-cover object-center" src={cover} alt={realEstate.title ?? ""} />
@@ -80,6 +86,16 @@ export default function RealEstateCard({
               {badge}
             </span>
           )}
+
+          {/* Status flags sit top-left, away from the type/sale badge. */}
+          <div className="flex flex-col items-start gap-[0.5rem] absolute top-[1rem] left-[1rem]">
+            {realEstate.sold && (
+              <span className="text-[1.2rem] font-bold text-white bg-red-600 rounded-[0.6rem] px-[0.8rem] py-[0.4rem]">VENDIDO</span>
+            )}
+            {realEstate.featured && !realEstate.sold && (
+              <span className="text-[1.2rem] font-bold text-black bg-amber-400 rounded-[0.6rem] px-[0.8rem] py-[0.4rem]">★ Destaque</span>
+            )}
+          </div>
         </div>
 
         <div className="w-full flex flex-col gap-[0.6rem] p-[1.6rem]">

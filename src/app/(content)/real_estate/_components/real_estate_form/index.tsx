@@ -10,6 +10,7 @@ import { MarkerF } from "@react-google-maps/api";
 // Components
 import { Form, InputField, TextareaField, StepperField, SwitchField, TagsField, Dropzone, GoogleMaps } from "@/components";
 import RealEstateCard from "@/app/(content)/real_estate/_components/real_estate_card";
+import DeleteRealEstate from "@/app/(content)/real_estate/_components/delete_real_estate";
 import TypePicker from "./components/type_picker";
 import SegmentedField from "./components/segmented_field";
 // Services
@@ -152,8 +153,12 @@ export default function RealEstateForm({ realEstate }: { realEstate?: RealEstate
                 <StepperField name="garages" label="Vagas" />
               </div>
 
-              <div className="w-full flex items-center justify-between gap-[1.5rem] border border-border rounded-[1rem] px-[1.6rem] py-[1.4rem]">
+              <div className="w-full flex flex-col gap-[1.4rem] border border-border rounded-[1rem] px-[1.6rem] py-[1.4rem]">
                 <SwitchField name="featured" label="Imóvel em destaque" description="Aparece primeiro na busca e na home" reverse />
+
+                <div className="h-px w-full bg-border" />
+
+                <SwitchField name="sold" label="Imóvel vendido" description="Marcado como vendido no site, sem sair da lista" reverse />
               </div>
 
               <TagsField name="features" label="Características" placeholder="Ex: Suíte master com hidro" suggestions={FEATURE_SUGGESTIONS} />
@@ -242,6 +247,18 @@ export default function RealEstateForm({ realEstate }: { realEstate?: RealEstate
           >
             Cancelar
           </button>
+
+          {/* Separated from the save/cancel pair so it is never the button you
+              hit by reflex. */}
+          {isEdit && (
+            <div className="w-full border-t border-border pt-[1.2rem] mt-[0.4rem]">
+              <DeleteRealEstate
+                realEstateId={realEstate!._id}
+                title={realEstate!.title}
+                imageCount={(realEstate!.images?.length ?? 0) + (realEstate!.thumbnail ? 1 : 0)}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

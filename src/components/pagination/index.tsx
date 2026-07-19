@@ -79,9 +79,9 @@ export default function Pagination({
   };
 
   return (
-    <div className="min-h-[6rem] h-[6rem] w-full flex">
-      <div className="h-full w-[25rem] flex justify-center items-center">
-        <span className="text-[1.4rem] font-bold">
+    <div className="min-h-[4rem] h-[4rem] w-full flex">
+      <div className="h-full w-[25rem] flex items-center">
+        <span className="text-[1.4rem] font-bold pl-[1.6rem]">
           Mostrando {firstItem}-{lastItem} de {totalItems}
         </span>
       </div>
@@ -96,7 +96,7 @@ export default function Pagination({
             </span>
           ) : (
             buildPageButton(page)
-          )
+          ),
         )}
 
         {buildArrow("next")}

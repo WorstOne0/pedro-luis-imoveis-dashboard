@@ -12,6 +12,7 @@ export const RealEstateSchema = z.object({
   bathrooms: z.coerce.number().min(0),
   garages: z.coerce.number().min(0),
   featured: z.boolean(),
+  sold: z.boolean(),
   features: z.array(z.string()),
   //
   address: z.object({
@@ -39,6 +40,7 @@ export const EMPTY_REAL_ESTATE: RealEstateFormValues = {
   bathrooms: 0,
   garages: 0,
   featured: false,
+  sold: false,
   features: [],
   //
   address: {

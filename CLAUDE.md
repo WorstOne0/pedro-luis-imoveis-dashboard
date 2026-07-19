@@ -43,20 +43,30 @@ src/
 
 ## Known gaps
 
-Real, currently broken, worth fixing before anything else:
-
-- `real_estate/edit/[id]/page.tsx` is a stub that renders the id.
-- On the add page the "Salvar" button is a `div` with no handler; the only
-  working submit is a leftover `<button>Teste</button>`.
-- `SelectWithLabel` still offers shadcn demo options (Banana, Blueberry, Grapes)
-  instead of property types.
-- `Pagination` accepts `setCurrentPage`/`totalPages` but ignores both — the page
-  numbers are hardcoded and no button has a handler.
-- The list page search field is validated with `z.string().email()`, so it can
-  never submit.
-- The navbar hardcodes "Lucca G." and a GitHub avatar instead of reading
-  `useAuthStore().user`; the logout icon has no handler though `logout()` exists.
+- Existing gallery images cannot be deleted individually — the API replaces the
+  whole gallery on write, so a per-image delete would be a promise the backend
+  cannot keep. Needs a partial-gallery endpoint.
+- `AuthGuard` is client-side only; there is no middleware, so protected pages are
+  served and then hidden.
 - `SearchModal` renders an empty box.
-- Dropzone uses placeholder anime images from `public/test/` as drag feedback.
-- `AuthGuard` is client-side only; there is no middleware, so protected pages
-  are served and then hidden.
+- Notificações, Análises and Configurações are stubs.
+- The dashboard's "Visualizações" and "Contatos WhatsApp" tiles are sample data,
+  badged `exemplo`. The growth chart shows an empty state because every listing
+  shares one import date.
+- No test suite.
+
+## Extra rules learned the hard way
+
+- **Sizing goes on `FieldWrapper`, not the control it wraps.** The wrapper is the
+  flex item a parent measures; a width on the inner control is ignored. Two
+  selects once squeezed the listing search box to 111px.
+- **Read form values with `getValues`, not the render closure.** `StepperField`
+  and `TagsField` both hit this: several rapid clicks all saw the same stale
+  value and only advanced once.
+- **`html, body { overflow: hidden }` is deliberate.** The shell is fixed and only
+  inner panes scroll; without it the page scrolled and opening a Radix select
+  shifted the layout sideways.
+- **Route-local code lives beside its route** in `_components/`. `src/components`
+  is only for what more than one route uses.
+- `real_estate_card` mirrors the frontend component of the same name, and its
+  `preview` variant backs the form's live preview. Restyle one, restyle the other.
