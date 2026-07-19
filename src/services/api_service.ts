@@ -1,8 +1,10 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 
+// Set NEXT_PUBLIC_API_URL per environment; the localhost fallback only covers
+// local development.
 const apiService = axios.create({
-  baseURL: "http://localhost:4000",
+  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000",
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",

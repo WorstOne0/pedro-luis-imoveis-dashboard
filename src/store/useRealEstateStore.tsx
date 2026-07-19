@@ -6,6 +6,8 @@ export type RealEstate = {
   title: string;
   description: string;
   type: string;
+  sale: string;
+  featured: boolean;
   //
   price: number;
   area: number;
@@ -17,12 +19,12 @@ export type RealEstate = {
   //
   thumbnail: string;
   images: string[];
+  //
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type Address = {
-  _id: string;
-  targetId: string;
-  //
   cep: string;
   street: string;
   district: string;
@@ -31,23 +33,20 @@ export type Address = {
   complement: string;
   number: string;
   //
-  position: google.maps.LatLng;
+  position?: { lat: number; lng: number } | null;
 };
 
+// Only UI state lives here. The listing list and single listings come from
+// useApiFetch/SWR, which owns caching and revalidation — keeping a second copy
+// here meant the two could disagree.
 type RealEstateStore = {
-  realEstateList: RealEstate[];
   realEstateSelected: RealEstate | null;
-  //
-  setRealEstateList: (realEstateList: RealEstate[]) => void;
-  setRealEstateSelected: (realEstate: RealEstate) => void;
+  setRealEstateSelected: (realEstate: RealEstate | null) => void;
 };
 
 const useRealEstateStore = create<RealEstateStore>((set) => ({
-  realEstateList: [],
   realEstateSelected: null,
-  //
-  setRealEstateList: (realEstateList: RealEstate[]) => set({ realEstateList: realEstateList }),
-  setRealEstateSelected: (realEstate: RealEstate) => set({ realEstateSelected: realEstate }),
+  setRealEstateSelected: (realEstate: RealEstate | null) => set({ realEstateSelected: realEstate }),
 }));
 
 export default useRealEstateStore;

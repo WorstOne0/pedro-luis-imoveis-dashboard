@@ -1,31 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @next/next/no-img-element */
 
 import React, { useCallback } from "react";
-import Image from "next/image";
 import { useDropzone } from "react-dropzone";
 import { filesize } from "filesize";
 //
-import imgAccept from "@/../public/test/kawaii-kawaiianime-anime-girl-animegirl-animekawaii-menhera-chan-ok-1156328445749rjgc7qz0-removebg-preview.png";
-import imgReject from "@/../public/test/unnamed-removebg-preview.png";
-//
 import { AiOutlineCloudUpload, AiOutlineDelete } from "react-icons/ai";
-import { FaPlus } from "react-icons/fa6";
 
 type DropzoneProps = {
   files: any[];
   setFiles: any;
   multiple?: boolean;
   text?: string;
-  accept?: string;
+  /**
+   * Urls already saved on the record. Shown so the broker can see what is there
+   * before deciding to replace it. They are not editable individually: the API
+   * replaces the whole gallery on write, so removing one image here would be a
+   * promise the backend cannot keep.
+   */
+  existing?: string[];
 };
 
-export default function Dropzone({
-  files,
-  setFiles,
-  multiple = false,
-  text = "Arraste e solte seu arquivo aqui para carregar",
-  accept = "image/*",
-}: DropzoneProps) {
+export default function Dropzone({ files, setFiles, multiple = false, text = "Arraste e solte seu arquivo aqui para carregar", existing = [] }: DropzoneProps) {
   const id = React.useId();
 
   const onDrop = useCallback(
@@ -50,7 +46,7 @@ export default function Dropzone({
     multiple,
   });
 
-  const removeFile = (file: any, index: number) => {
+  const removeFile = (index: number) => {
     if (!multiple) return setFiles([]);
 
     const newFiles = [...files];
@@ -58,107 +54,100 @@ export default function Dropzone({
     setFiles(newFiles);
   };
 
-  if (files.length > 0 && !multiple) {
-    return (
-      <div className="h-full w-full flex relative p-2 bg-gray-100">
-        <div
-          className="h-full w-full bg-cover bg-no-repeat bg-center relative rounded-[0.8rem]"
-          style={{ backgroundImage: `url(${files[0].preview})` }}
-        />
+  const removeButton = (onClick: () => void, label?: string) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-[0.6rem] bg-destructive text-white rounded-[0.8rem] px-[1rem] py-[0.5rem] absolute top-[0.8rem] right-[0.8rem] cursor-pointer hover:opacity-90"
+    >
+      <AiOutlineDelete size={16} />
+      {label && <span className="text-[1.2rem]">{label}</span>}
+    </button>
+  );
 
-        <div
-          className="flex items-center bg-red-800 px-[1.5rem] py-[0.5rem] rounded-[0.8rem] gap-[0.8rem] absolute top-[1rem] right-[1rem] select-none cursor-pointer"
-          onClick={() => removeFile(null, 0)}
-        >
-          <AiOutlineDelete color="white" size={16} />
-          <span className="text-white text-[1.2rem]">Remover</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (files.length > 0 && multiple) {
-    return (
-      <div className="h-full w-full flex flex-col p-2">
-        <div className="min-h-0 grow w-full grid grid-cols-6 auto-rows-[10rem] gap-3 overflow-y-auto bg-gray-100 rounded-[0.8rem]">
-          {files.map((file, index) => (
-            <div
-              key={`file_${index}`}
-              className="bg-cover bg-no-repeat bg-center relative rounded-[0.8rem] cursor-pointer"
-              style={{ backgroundImage: `url(${file.preview})` }}
-              onClick={() => {}}
-            >
-              <div
-                className="flex items-center bg-red-800 px-[0.5rem] py-[0.5rem] rounded-[0.8rem] absolute top-[0.3rem] right-[0.3rem] select-none cursor-pointer"
-                onClick={() => removeFile(file, index)}
-              >
-                <AiOutlineDelete color="white" size={16} />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="min-h-[7rem] h-[7rem] w-full mt-[1rem]">
-          <div className="h-full w-full" {...getRootProps({})}>
-            <input {...getInputProps()} style={{ display: "none" }} type="file" />
-
-            <div
-              className={`h-full w-full flex flex-col items-center justify-center border-dashed border-2 rounded-[0.8rem] ${
-                isDragAccept ? "border-green-500" : isDragReject ? "border-red-500" : "border-primary"
-              }`}
-            >
-              <div className="h-full w-full flex items-center justify-center gap-[1rem]">
-                <AiOutlineCloudUpload className="Icon" size={28} />
-                <span>Arraste e solte seus arquivos aqui</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="h-full w-full" {...getRootProps({})}>
+  const dropTarget = (compact = false) => (
+    <div className={compact ? "min-h-[9rem] h-[9rem] w-full" : "h-full w-full"} {...getRootProps({})}>
       <input {...getInputProps()} style={{ display: "none" }} type="file" />
 
       <div
-        className={`h-full w-full flex flex-col items-center justify-center border-dashed border-2 rounded-[0.8rem] ${
-          isDragAccept ? "border-green-500" : isDragReject ? "border-red-500" : "border-primary"
-        }`}
+        className={`h-full w-full flex flex-col items-center justify-center gap-[0.8rem] border-dashed border-2 rounded-[1rem] transition-colors
+          ${isDragAccept ? "border-green-500 bg-green-500/5" : isDragReject ? "border-destructive bg-destructive/5" : "border-border hover:border-primary"}`}
       >
-        {!isDragActive && (
-          <div className="h-full w-full flex flex-col items-center justify-center">
-            <AiOutlineCloudUpload className="Icon" size={60} />
-            <span className="font-bold text-[2rem]">{text}</span>
-            <div className="flex items-center text-[1.4rem]">
-              <span className="italic text-gray-600">Tamanho máximo 10MB</span>
-              <div className="h-[0.4rem] w-[0.4rem] mx-[1rem] bg-gray-400 rounded-full "></div>
-              <span className="italic text-gray-600">Formato suportado PNG, JPEG e MP4</span>
-            </div>
+        {isDragActive ? (
+          <span className="text-[1.6rem] font-semibold">{isDragAccept ? "Pode soltar!" : "Arquivo inválido"}</span>
+        ) : compact ? (
+          <div className="flex items-center gap-[1rem] text-muted-foreground">
+            <AiOutlineCloudUpload size={24} />
+            <span className="text-[1.5rem]">Arraste mais arquivos ou clique para selecionar</span>
+          </div>
+        ) : (
+          <>
+            <AiOutlineCloudUpload size={48} className="text-muted-foreground" />
+            <span className="font-bold text-[1.8rem]">{text}</span>
+            <span className="text-[1.3rem] text-muted-foreground">Fotos são redimensionadas automaticamente</span>
+            <span className="text-[1.3rem] text-muted-foreground">JPEG, PNG, WebP, HEIC · vídeo MP4 ou MOV até 300MB</span>
             <label
-              className="h-[4.5rem] w-[20rem] mt-[2.5rem] flex items-center justify-center bg-primary rounded-[0.8rem] cursor-pointer text-white"
+              className="h-[4.4rem] w-[20rem] mt-[1rem] flex items-center justify-center bg-primary text-white rounded-[1rem] cursor-pointer text-[1.5rem]"
               htmlFor={`fileUpload${id}`}
             >
               Selecionar arquivo
             </label>
-          </div>
-        )}
-
-        {isDragActive && isDragAccept && (
-          <div className="h-full w-full flex flex-col items-center justify-center">
-            <Image className="h-[20rem] w-[20rem]" src={imgAccept} alt="" />
-            <span className="text-[1.6rem] font-bold mt-[1rem]">Arquivo valído, pode soltar!</span>
-          </div>
-        )}
-
-        {isDragActive && !isDragAccept && (
-          <div className="h-full w-full flex flex-col items-center justify-center">
-            <Image className="h-[20rem] w-[20rem]" src={imgReject} alt="" />
-            <span className="text-[1.6rem] font-bold mt-[1rem]">Arquivo inválido, selecione outro arquivo</span>
-          </div>
+          </>
         )}
       </div>
     </div>
   );
+
+  // Single file — the cover. A chosen file wins over whatever is saved.
+  if (!multiple) {
+    const preview = files[0]?.preview ?? existing[0];
+    if (!preview) return dropTarget();
+
+    return (
+      <div className="h-full w-full rounded-[1rem] overflow-hidden relative">
+        <img src={preview} alt="" className="h-full w-full object-cover object-center" />
+
+        {files[0]
+          ? removeButton(() => removeFile(0), "Remover")
+          : <span className="text-[1.2rem] text-white bg-black/70 rounded-[0.6rem] px-[0.8rem] py-[0.4rem] absolute top-[0.8rem] left-[0.8rem]">Capa atual</span>}
+
+        {!files[0] && (
+          <div className="w-full bg-black/60 px-[1.2rem] py-[1rem] absolute bottom-0 left-0" {...getRootProps({})}>
+            <input {...getInputProps()} style={{ display: "none" }} type="file" />
+            <span className="text-[1.3rem] text-white cursor-pointer">Clique ou arraste um arquivo para substituir a capa</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Gallery.
+  if (files.length > 0 || existing.length > 0) {
+    return (
+      <div className="h-full w-full flex flex-col gap-[1rem]">
+        <div className="min-h-0 grow w-full grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] auto-rows-[14rem] gap-[1rem] overflow-y-auto">
+          {files.map((file, index) => (
+            <div key={`file_${index}`} className="rounded-[1rem] overflow-hidden relative">
+              <img src={file.preview} alt="" className="h-full w-full object-cover object-center" />
+              {removeButton(() => removeFile(index))}
+            </div>
+          ))}
+
+          {/* Saved images stay visible until new ones are chosen, since sending
+              any replaces the whole gallery. */}
+          {files.length === 0 &&
+            existing.map((url, index) => (
+              <div key={`existing_${index}`} className="rounded-[1rem] overflow-hidden relative">
+                <img src={url} alt="" className="h-full w-full object-cover object-center" />
+                <span className="text-[1.1rem] text-white bg-black/70 rounded-[0.5rem] px-[0.6rem] py-[0.2rem] absolute top-[0.6rem] left-[0.6rem]">Atual</span>
+              </div>
+            ))}
+        </div>
+
+        {dropTarget(true)}
+      </div>
+    );
+  }
+
+  return dropTarget();
 }

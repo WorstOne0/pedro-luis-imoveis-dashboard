@@ -1,93 +1,112 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 // Packages
-import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 // Components
-import { Icon, Card } from "@/components";
+import { Icon } from "@/components";
+import type { IconName } from "@/components/icon";
+// Hooks / Store
+import { useApiFetch } from "@/hooks";
+import { useAuthStore } from "@/store";
+import type { RealEstate } from "@/store/useRealEstateStore";
 //
 import logo from "@/../public/logo/logo.png";
-import textLogo from "@/../public/logo/text_logo.png";
 
 export default function NavBar() {
   const pathname = usePathname();
-  const [isNavOpen, setIsNavOpen] = useState(true);
+  const router = useRouter();
 
-  const buttons = [
-    { value: "/dashboard", name: "Dashboard", icon: <Icon name="MdSpaceDashboard" size={18} /> },
-    { value: "/real_estate", name: "Imóveis", icon: <Icon name="MdApartment" size={18} /> },
-    { value: "/analytics", name: "Análises", icon: <Icon name="MdAnalytics" size={18} /> },
-    { value: "/notifications", name: "Notificações", icon: <Icon name="MdNotifications" size={18} /> },
-    { value: "/settings", name: "Configurações", icon: <Icon name="MdOutlineSettings" size={18} /> },
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+
+  // Same SWR key the listing page uses, so the badge costs no extra request.
+  const { data: realEstateList } = useApiFetch<RealEstate[]>("/real_estate?sort=recent");
+
+  const routes: { value: string; name: string; icon: IconName; badge?: number; dot?: boolean }[] = [
+    { value: "/dashboard", name: "Dashboard", icon: "MdSpaceDashboard" },
+    { value: "/real_estate", name: "Imóveis", icon: "MdApartment", badge: realEstateList?.length },
+    { value: "/analytics", name: "Análises", icon: "MdAnalytics" },
+    { value: "/notifications", name: "Notificações", icon: "MdNotifications", dot: true },
+    { value: "/settings", name: "Configurações", icon: "MdOutlineSettings" },
   ];
 
-  const createButton = ({ route, index }: { route: any; index: number }) => {
-    return (
-      <Card key={`nav_button_${index}`} className="w-full mb-[1rem] last:mb-0" onClick={(e) => e.stopPropagation()}>
-        <Link
-          href={route.value}
-          className={`
-            min-h-[3.5rem] h-[3.5rem] w-full flex justify-center items-center gap-3 px-3 cursor-pointer select-none overflow-hidden rounded-[0.8rem] 
-            ${pathname === route.value ? "bg-primary text-white" : "text-primary"}`}
-        >
-          <div>{route.icon}</div>
-          {isNavOpen && <span className={`min-w-0 grow text-[1.4rem] ${pathname === route.value ? "text-white" : "text-black"}`}>{route.name}</span>}
-        </Link>
-      </Card>
-    );
-  };
-
-  const handleNavBarSize = () => setIsNavOpen(!isNavOpen);
+  const initials = (user?.screenName ?? "PL")
+    .split(" ")
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
 
   return (
-    <div
-      className={`
-        h-full flex flex-col border-r border-gray-300 px-[1rem] py-[1rem] relative
-        transition-all duration-200 ${isNavOpen ? "min-w-[22rem] w-[22rem]" : "min-w-[6rem] w-[6.5rem]"}
-      `}
-      onClick={handleNavBarSize}
-    >
-      {/* Open/Close Button */}
-      <div
-        className="
-          h-[3rem] w-[3rem] rounded-full flex items-center justify-center border border-gray-300 bg-background
-          absolute top-[6rem] right-[-3rem] -translate-x-1/2 -translate-y-1/2 cursor-pointer
-        "
-      >
-        {isNavOpen ? (
-          <Icon name="MdOutlineKeyboardDoubleArrowLeft" size={16} className="text-gray-500" />
+    <div className="h-full min-w-[25rem] w-[25rem] shrink-0 flex flex-col bg-card border border-border rounded-[1.6rem]">
+      {/* Brand */}
+      <div className="flex items-center gap-[1.2rem] px-[1.6rem] py-[1.8rem]">
+        <img className="h-[4.2rem] w-[4.2rem] shrink-0 rounded-[1rem] object-contain" src={logo.src} alt="Pedro Luis Imóveis" />
+
+        <div className="min-w-0 flex flex-col">
+          <span className="text-[1.6rem] font-bold leading-[2rem] truncate">Pedro Luis Imóveis</span>
+          <span className="text-[1.2rem] text-muted-foreground leading-[1.6rem]">Painel admin</span>
+        </div>
+      </div>
+
+      <div className="h-px w-full bg-border" />
+
+      {/* Menu — top aligned, not centred: the eye expects navigation to start
+          under the brand, and a vertically centred block drifts as items grow. */}
+      <nav className="min-h-0 grow flex flex-col gap-[0.4rem] px-[1rem] py-[1.4rem] overflow-y-auto">
+        <span className="text-[1.1rem] font-semibold uppercase tracking-wide text-muted-foreground px-[1rem] pb-[0.6rem]">Menu</span>
+
+        {routes.map((route) => {
+          const isActive = pathname.startsWith(route.value);
+
+          return (
+            <Link
+              key={route.value}
+              href={route.value}
+              className={`
+                h-[4.4rem] w-full flex items-center gap-[1.2rem] px-[1.2rem] rounded-[1rem] select-none transition-colors
+                ${isActive ? "bg-muted font-semibold text-foreground" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"}
+              `}
+            >
+              <Icon name={route.icon} size={18} className="shrink-0" />
+
+              <span className="min-w-0 grow text-[1.4rem] truncate">{route.name}</span>
+              {route.badge !== undefined && <span className="text-[1.2rem] text-muted-foreground">{route.badge}</span>}
+              {route.dot && <span className="h-[0.8rem] w-[0.8rem] rounded-full bg-primary shrink-0" />}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="h-px w-full bg-border" />
+
+      {/* User */}
+      <div className="flex items-center gap-[1.2rem] px-[1.4rem] py-[1.6rem]">
+        {user?.profilePicture ? (
+          <img className="h-[4rem] w-[4rem] shrink-0 rounded-full object-cover" src={user.profilePicture} alt="" />
         ) : (
-          <Icon name="MdOutlineKeyboardDoubleArrowRight" size={16} className="text-gray-500" />
+          <div className="h-[4rem] w-[4rem] shrink-0 rounded-full bg-muted flex justify-center items-center">
+            <span className="text-[1.4rem] font-bold text-muted-foreground">{initials}</span>
+          </div>
         )}
-      </div>
 
-      {/* Top */}
-      <div className="w-full flex items-start justify-center">
-        <div className="w-full flex justify-between items-center">
-          <img className="h-[4.5rem] w-[4.5rem] " src={logo.src} alt="" />
-          <img className="min-w-0 grow" src={textLogo.src} alt="" />
+        <div className="min-w-0 grow flex flex-col">
+          <span className="text-[1.4rem] font-semibold truncate">{user?.screenName ?? "—"}</span>
+          <span className="text-[1.2rem] text-muted-foreground truncate">{user?.userName ?? ""}</span>
         </div>
-      </div>
 
-      {/* Middle */}
-      <div className="min-h-0 grow w-full flex flex-col items-center justify-center py-3">
-        {buttons.map((route, index) => createButton({ route, index }))}
-      </div>
-
-      {/* Bottom */}
-      <div className="flex items-end pb-[1rem]">
-        <div className={`w-full flex items-center ${isNavOpen ? "flex-row-reverse" : "flex-col justify-center"}`}>
-          <Icon name="FiLogOut" size={22} className={`cursor-pointer ${isNavOpen ? "" : "mb-[1.5rem]"}`} />
-
-          {isNavOpen && (
-            <div className="min-w-0 grow ml-[1rem] flex flex-col">
-              <span className="text-[1.6rem] font-bold">Lucca G.</span>
-              <span className="text-[1.2rem]">_divideByZero</span>
-            </div>
-          )}
-          <img className="w-[4.3rem] h-[4.3rem] rounded-full" src="https://avatars.githubusercontent.com/u/31835808?v=4" alt="" />
-        </div>
+        <button
+          type="button"
+          aria-label="Sair"
+          onClick={() => {
+            logout();
+            router.replace("/login");
+          }}
+          className="h-[3.6rem] w-[3.6rem] shrink-0 flex justify-center items-center rounded-[0.8rem] border border-border text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
+        >
+          <Icon name="FiLogOut" size={16} />
+        </button>
       </div>
     </div>
   );

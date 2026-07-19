@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 // Components
-import { Checkbox, Form, InputWithLabel } from "@/components";
+import { Checkbox, Form, InputField } from "@/components";
 // Icons
 import { FaGithub } from "react-icons/fa";
 import { useAuthStore } from "@/store";
@@ -76,9 +76,9 @@ export default function Login() {
           <div className="w-[60%] mt-[3rem]">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
-                <InputWithLabel name="email" label="Email" />
+                <InputField name="email" label="Email" />
                 <div className="h-[2rem]"></div>
-                <InputWithLabel name="password" label="Password" type="password" />
+                <InputField name="password" label="Password" type="password" />
 
                 <div className="w-full flex justify-between mt-[1rem]">
                   <div className="flex items-center cursor-pointer">

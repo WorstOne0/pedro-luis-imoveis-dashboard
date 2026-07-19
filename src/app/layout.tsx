@@ -1,13 +1,15 @@
 "use client";
 
 // Next
-import { Nunito } from "next/font/google";
+import { Poppins } from "next/font/google";
 // Services
 import { ThemeProvider } from "@/services";
 // Styles
 import "@/styles/global.css";
 
-const nunito = Nunito({ subsets: ["latin"] });
+// Poppins has no variable font on Google Fonts, so the weights actually
+// used have to be listed explicitly.
+const poppins = Poppins({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700", "800"] });
 
 export default function RootLayout({
   children,
@@ -17,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-        <body className={`h-full w-full flex ${nunito.className} antialiased`}>{children}</body>
+        <body className={`h-full w-full flex ${poppins.className} antialiased`}>{children}</body>
       </ThemeProvider>
     </html>
   );

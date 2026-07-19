@@ -1,0 +1,23 @@
+services:
+  dashboard:
+    container_name: pedro_luis_imoveis_dashboard
+    restart: unless-stopped
+    build:
+      context: .
+      # These are baked into the client bundle, so they are build args rather
+      # than runtime environment. Changing one needs a rebuild, not a restart.
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+        - NEXT_PUBLIC_GOOGLE_MAPS_API=${NEXT_PUBLIC_GOOGLE_MAPS_API}
+    environment:
+      - LETSENCRYPT_HOST=${HOST}
+      - VIRTUAL_HOST=${HOST}
+      - VIRTUAL_PORT=3000
+    expose:
+      - 3000
+    networks:
+      - nginx-proxy
+
+networks:
+  nginx-proxy:
+    external: true

@@ -1,116 +1,129 @@
 "use client";
 
 // Next
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 // Components
-import { Card, Form, InputWithLabel, Pagination, RealEstateCard } from "@/components";
-import { useApiFetch } from "@/hooks";
-import { useRealEstateStore } from "@/store";
+import { Card, Pagination, Input, SelectPlain } from "@/components";
+import RealEstateCard from "@/app/(content)/real_estate/_components/real_estate_card";
+import { useApiFetch, useDebounce } from "@/hooks";
+import { PROPERTY_TYPE_OPTIONS } from "@/lib/real_estate_options";
+import type { RealEstate } from "@/store/useRealEstateStore";
 //
-import { BsListUl, BsGrid1X2Fill } from "react-icons/bs";
 import { FaSortAmountDown } from "react-icons/fa";
-import { IoAdd } from "react-icons/io5";
+import { IoAdd, IoSearch } from "react-icons/io5";
 
-const FormSchema = z.object({
-  search: z.string().email("Invalid email address"),
-});
+const PAGE_SIZE = 12;
+
+const SORTS = [
+  { value: "recent", label: "Mais recentes" },
+  { value: "oldest", label: "Mais antigos" },
+  { value: "price_desc", label: "Maior preço" },
+  { value: "price_asc", label: "Menor preço" },
+  { value: "area_desc", label: "Maior área" },
+];
 
 export default function RealEstate() {
   const router = useRouter();
 
-  const { realEstateList, setRealEstateList } = useRealEstateStore((state) => state);
-  const { isLoading } = useApiFetch({ url: "http://localhost:4000/real_estate", method: "get" }, setRealEstateList);
-
+  const [search, setSearch] = useState("");
+  const [type, setType] = useState("");
+  const [sort, setSort] = useState("recent");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: { search: "" },
-  });
+  const debouncedSearch = useDebounce(search);
 
-  const buildLabel = ({ label }: { label: string; left?: string }) => {
-    return <label className={`absolute top-0 left-[0.8rem] translate-y-[-50%] text-[1.4rem] bg-background text-primary px-[1rem]`}>{label}</label>;
-  };
+  const query = useMemo(() => {
+    const params = new URLSearchParams({ sort });
+    if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
+    if (type) params.set("type", type);
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+    return params.toString();
+  }, [debouncedSearch, type, sort]);
+
+  const { data: realEstateList = [], isLoading } = useApiFetch<RealEstate[]>(`/real_estate?${query}`);
+
+  const totalPages = Math.max(Math.ceil(realEstateList.length / PAGE_SIZE), 1);
+  // Filtering can shrink the list below the current page; clamp so the grid
+  // never ends up empty while pages still exist.
+  const page = Math.min(currentPage, totalPages);
+  const visible = realEstateList.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="h-full w-full flex flex-col relative">
       {/* Search Bar */}
-      <div className="min-h-[5.8rem] h-[5.8rem] w-full flex mt-[3rem] px-[1.5rem]">
-        <Form {...form}>
-          <form className="h-full w-full gap-[1rem] flex justify-center items-center mr-[1.5rem] " onSubmit={form.handleSubmit(() => {})}>
-            <div className="min-w-0 grow">
-              <InputWithLabel name="search" label="Pesquisar" className="h-[5.8rem] w-full" />
-            </div>
+      <div className="min-h-[5rem] h-[5rem] w-full flex gap-[1rem]">
+        <div className="min-w-0 grow relative">
+          <div className="h-full w-[4rem] absolute top-0 left-0 flex justify-center items-center text-muted-foreground pointer-events-none">
+            <IoSearch size={18} />
+          </div>
+          <Input
+            className="h-full w-full md:text-[1.6rem] rounded-[1rem]"
+            placeholder="Pesquisar por título, descrição ou endereço"
+            hasStartIcon
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
 
-            <Card className="h-full w-[28rem] flex justify-center items-center relative">
-              <span>R$ 250.000 - R$ 1.000.000</span>
-              {buildLabel({ label: "Preço" })}
-            </Card>
+        <SelectPlain
+          className="h-full w-[22rem] shrink-0"
+          placeholder="Todos os tipos"
+          value={type}
+          onChange={(value) => {
+            setType(value);
+            setCurrentPage(1);
+          }}
+          options={[{ value: "", label: "Todos os tipos" }, ...PROPERTY_TYPE_OPTIONS]}
+        />
 
-            <Card className="h-full w-[20rem] flex justify-center items-center relative">
-              <span>Apartamento</span>
-              {buildLabel({ label: "Tipo" })}
-            </Card>
-            <Card className="h-full w-[12rem] flex justify-center items-center relative">
-              <span>2-3</span>
-              {buildLabel({ label: "Quartos" })}
-            </Card>
-            <Card className="h-full w-[12rem] flex justify-center items-center relative">
-              <span>250m2</span>
-              {buildLabel({ label: "Area" })}
-            </Card>
-
-            <Card className="h-full w-[18rem] rounded-[0.8rem] flex justify-center items-center bg-primary cursor-pointer">
-              <span className="text-white text-[2rem] font-bold select-none">Procurar</span>
-            </Card>
-          </form>
-        </Form>
+        <SelectPlain
+          className="h-full w-[20rem] shrink-0"
+          placeholder="Ordenar"
+          value={sort}
+          onChange={setSort}
+          options={SORTS}
+          startIcon={<FaSortAmountDown />}
+        />
       </div>
 
       {/* List */}
-      <div className="flex justify-between px-[1.5rem] mt-[1.5rem]">
-        <div className="flex items-end">
-          <span className="text-[5rem] font-bold mr-[1rem]">{realEstateList.length}</span>
-          <span className="mb-[1.5rem] italic ">Imóveis encontrados</span>
-        </div>
-
-        <div className="h-full w-[25rem] flex justify-end items-center gap-[1.5rem] mr-[1.5rem]">
-          <Card className="h-[4.5rem] w-[4.5rem] flex justify-center items-center cursor-pointer">
-            <FaSortAmountDown />
-          </Card>
-          <Card className="h-[4.5rem] w-[4.5rem] flex justify-center items-center cursor-pointer">
-            <BsListUl />
-          </Card>
-          <Card className="h-[4.5rem] w-[4.5rem] flex justify-center items-center cursor-pointer">
-            <BsGrid1X2Fill size={16} />
-          </Card>
+      <div className="flex justify-between mt-[1.5rem] mb-[0.5rem]">
+        <div className="flex items-baseline gap-[1rem]">
+          <span className="text-[3.2rem] font-bold">{realEstateList.length}</span>
+          <span className="text-[1.5rem] text-muted-foreground">{realEstateList.length === 1 ? "imóvel encontrado" : "imóveis encontrados"}</span>
         </div>
       </div>
-      <div className="min-h-0 grow w-full grid grid-cols-[repeat(auto-fill,minmax(50rem,1fr))] gap-[1.5rem] px-[1.5rem] overflow-y-auto">
-        {realEstateList.map((item, index) => (
-          <RealEstateCard key={`real_estate_card_${index}`} realEstate={item} onClickCallback={() => router.push(`/real_estate/edit/${item._id}`)} />
+
+      {/* 32rem, not 50rem: the preview card is far narrower than the old one,
+          and the wider track left a single column on a 1000px pane. */}
+      <div className="min-h-0 grow w-full grid grid-cols-[repeat(auto-fill,minmax(32rem,1fr))] auto-rows-min gap-[1.5rem] overflow-y-auto">
+        {isLoading && <span className="italic text-gray-500">Carregando imóveis...</span>}
+
+        {!isLoading && realEstateList.length === 0 && <span className="italic text-gray-500">Nenhum imóvel encontrado.</span>}
+
+        {visible.map((item) => (
+          <RealEstateCard
+            key={`real_estate_card_${item._id}`}
+            realEstate={item}
+            variant="preview"
+            onClickCallback={() => router.push(`/real_estate/edit/${item._id}`)}
+          />
         ))}
       </div>
 
-      {/* Add Button */}
-      <Card
-        className="h-[6rem] w-[25rem] flex justify-center items-center gap-[1.5rem] rounded-[0.8rem] bg-primary shadow-xl cursor-pointer absolute bottom-[6.5rem] right-[2.5rem]"
-        onClick={() => router.push("/real_estate/add")}
-      >
-        <IoAdd color="white" size={30} />
-        <span className="text-white text-[2rem] font-bold select-none">Adicionar</span>
-      </Card>
-
-      {/* Pagination */}
-      <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} totalPages={26} />
+      {/* No floating add button: the page header carries the primary action, and
+          two of them competing on one screen is one too many. */}
+      <Pagination
+        currentPage={page}
+        setCurrentPage={setCurrentPage}
+        totalPages={totalPages}
+        totalItems={realEstateList.length}
+        pageSize={PAGE_SIZE}
+      />
     </div>
   );
 }
