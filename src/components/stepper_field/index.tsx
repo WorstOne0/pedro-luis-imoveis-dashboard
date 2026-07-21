@@ -73,7 +73,10 @@ export default function StepperField({
                 className="min-w-0 grow bg-transparent text-[1.6rem] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 value={value}
                 min={min}
-                step={step}
+                // "any", not `step`: the step prop drives the -/+ buttons, but
+                // as an HTML step it made every value between multiples invalid
+                // — area jumped 60 to 70 and typing 67 was rejected outright.
+                step="any"
                 onChange={(event) => {
                   const next = event.target.valueAsNumber;
                   field.onChange(Number.isNaN(next) ? min : Math.max(next, min));

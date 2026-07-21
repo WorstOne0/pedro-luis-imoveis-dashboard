@@ -8,20 +8,25 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MarkerF } from "@react-google-maps/api";
 // Components
-import { Form, InputField, TextareaField, StepperField, SwitchField, TagsField, Dropzone, GoogleMaps } from "@/components";
+import { Form, InputField, SelectField, TextareaField, StepperField, SwitchField, TagsField, Dropzone, GoogleMaps } from "@/components";
 import RealEstateCard from "@/app/(content)/real_estate/_components/real_estate_card";
 import DeleteRealEstate from "@/app/(content)/real_estate/_components/delete_real_estate";
 import TypePicker from "./components/type_picker";
 import SegmentedField from "./components/segmented_field";
 // Services
 import { apiService } from "@/services";
-import { SALE_OPTIONS, FEATURE_SUGGESTIONS } from "@/lib/real_estate_options";
+import { SALE_OPTIONS, FEATURE_SUGGESTIONS, DISTRICT_OPTIONS } from "@/lib/real_estate_options";
 import { RealEstateSchema, EMPTY_REAL_ESTATE, type RealEstateFormValues } from "./schema";
 import type { RealEstate } from "@/store/useRealEstateStore";
 // Icons
 import { MdOutlineSave } from "react-icons/md";
 
 type DropzoneFile = { file: File; preview: string };
+
+// Must match MAX_GALLERY in the backend's real_estate route and MAX_FILES in
+// the image service. Capping here means the broker finds out before uploading
+// 30MB, not after.
+const MAX_GALLERY = 30;
 
 /** One numbered step of the form. */
 const Section = ({
@@ -57,6 +62,10 @@ export default function RealEstateForm({ realEstate }: { realEstate?: RealEstate
 
   const [thumbnail, setThumbnail] = useState<DropzoneFile[]>([]);
   const [images, setImages] = useState<DropzoneFile[]>([]);
+  // Saved gallery urls the broker has chosen to keep. Sent back on save; the
+  // API stores exactly this list plus whatever is newly uploaded, and deletes
+  // the files for anything dropped from it.
+  const [keptImages, setKeptImages] = useState<string[]>(realEstate?.images ?? []);
   const [marker, setMarker] = useState<google.maps.LatLngLiteral | null>(
     realEstate?.address?.position ? { lat: realEstate.address.position.lat, lng: realEstate.address.position.lng } : null
   );
@@ -94,7 +103,9 @@ export default function RealEstateForm({ realEstate }: { realEstate?: RealEstate
     setIsSaving(true);
 
     try {
-      const payload = { ...data, address: { ...data.address, position: marker } };
+      // `images` carries the kept urls. The API appends new uploads to it, so
+      // sending it on create too (as an empty array) keeps one code path.
+      const payload = { ...data, images: keptImages, address: { ...data.address, position: marker } };
 
       const formData = new FormData();
       formData.append("metadata", JSON.stringify(payload));
@@ -173,7 +184,10 @@ export default function RealEstateForm({ realEstate }: { realEstate?: RealEstate
               </div>
 
               <div className="w-full grid grid-cols-2 md:grid-cols-[1fr_1fr_10rem_10rem] gap-[1.6rem]">
-                <InputField name="address.district" label="Bairro" placeholder="Centro" />
+                {/* A select, not free text: the map matches listings to polygons
+                    by district name, and "Tropical " or "tropical" silently
+                    matched nothing. */}
+                <SelectField name="address.district" label="Bairro" options={DISTRICT_OPTIONS} placeholder="Selecione o bairro" />
                 <InputField name="address.city" label="Cidade" placeholder="Cascavel" />
                 <InputField name="address.state" label="Estado" placeholder="PR" />
                 <InputField name="address.number" label="Nº" placeholder="1200" />
@@ -197,11 +211,18 @@ export default function RealEstateForm({ realEstate }: { realEstate?: RealEstate
 
           <Section step={4} title="Galeria de imagens" subtitle="Fotos adicionais mostradas na página do imóvel.">
             <div className="h-[42rem] w-full">
-              <Dropzone files={images} setFiles={setImages} multiple existing={realEstate?.images ?? []} />
+              <Dropzone
+                files={images}
+                setFiles={setImages}
+                multiple
+                maxFiles={MAX_GALLERY}
+                existing={keptImages}
+                onRemoveExisting={(url) => setKeptImages((current) => current.filter((kept) => kept !== url))}
+              />
             </div>
             {isEdit && (
               <span className="text-[1.3rem] italic text-muted-foreground mt-[0.8rem] block">
-                Enviar novas imagens substitui a galeria atual ({realEstate?.images?.length ?? 0} imagens).
+                Imagens removidas são apagadas do servidor ao salvar.
               </span>
             )}
           </Section>

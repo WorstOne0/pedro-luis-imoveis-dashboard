@@ -13,31 +13,54 @@ type DropzoneProps = {
   multiple?: boolean;
   text?: string;
   /**
-   * Urls already saved on the record. Shown so the broker can see what is there
-   * before deciding to replace it. They are not editable individually: the API
-   * replaces the whole gallery on write, so removing one image here would be a
-   * promise the backend cannot keep.
+   * Urls already saved on the record. Pass `onRemoveExisting` to let the broker
+   * drop them individually; without it they are read-only.
    */
   existing?: string[];
+  onRemoveExisting?: (url: string) => void;
+  /** Cap on kept + new files. Must match the backend's gallery limit. */
+  maxFiles?: number;
 };
 
-export default function Dropzone({ files, setFiles, multiple = false, text = "Arraste e solte seu arquivo aqui para carregar", existing = [] }: DropzoneProps) {
+export default function Dropzone({
+  files,
+  setFiles,
+  multiple = false,
+  text = "Arraste e solte seu arquivo aqui para carregar",
+  existing = [],
+  onRemoveExisting,
+  maxFiles,
+}: DropzoneProps) {
   const id = React.useId();
+
+  // Kept images count against the cap: the backend receives both in one write.
+  const used = files.length + existing.length;
+  const remaining = maxFiles === undefined ? Infinity : Math.max(maxFiles - used, 0);
+
+  const [rejected, setRejected] = React.useState<number>(0);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       if (acceptedFiles.length == 0) return;
 
+      // Trim to what still fits rather than refusing the whole drop — dragging
+      // 40 photos should add 30, not nothing.
+      const room = maxFiles === undefined ? acceptedFiles.length : Math.max(maxFiles - (files.length + existing.length), 0);
+      const accepted = acceptedFiles.slice(0, room);
+
+      setRejected(acceptedFiles.length - accepted.length);
+      if (accepted.length === 0) return;
+
       setFiles([
         ...files,
-        ...acceptedFiles.map((file) => ({
+        ...accepted.map((file) => ({
           file,
           size: filesize(file.size),
           preview: URL.createObjectURL(file),
         })),
       ]);
     },
-    [setFiles, files]
+    [setFiles, files, existing.length, maxFiles]
   );
 
   const { getRootProps, getInputProps, isDragActive, isDragAccept, isDragReject } = useDropzone({
@@ -126,25 +149,45 @@ export default function Dropzone({ files, setFiles, multiple = false, text = "Ar
     return (
       <div className="h-full w-full flex flex-col gap-[1rem]">
         <div className="min-h-0 grow w-full grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] auto-rows-[14rem] gap-[1rem] overflow-y-auto">
+          {/* Saved images first, so the gallery reads in the order it will be
+              stored: kept images, then the new ones appended after them. */}
+          {existing.map((url) => (
+            <div key={`existing_${url}`} className="rounded-[1rem] overflow-hidden relative">
+              <img src={url} alt="" className="h-full w-full object-cover object-center" />
+              <span className="text-[1.1rem] text-white bg-black/70 rounded-[0.5rem] px-[0.6rem] py-[0.2rem] absolute top-[0.6rem] left-[0.6rem]">Atual</span>
+              {onRemoveExisting && removeButton(() => onRemoveExisting(url))}
+            </div>
+          ))}
+
           {files.map((file, index) => (
             <div key={`file_${index}`} className="rounded-[1rem] overflow-hidden relative">
               <img src={file.preview} alt="" className="h-full w-full object-cover object-center" />
               {removeButton(() => removeFile(index))}
             </div>
           ))}
-
-          {/* Saved images stay visible until new ones are chosen, since sending
-              any replaces the whole gallery. */}
-          {files.length === 0 &&
-            existing.map((url, index) => (
-              <div key={`existing_${index}`} className="rounded-[1rem] overflow-hidden relative">
-                <img src={url} alt="" className="h-full w-full object-cover object-center" />
-                <span className="text-[1.1rem] text-white bg-black/70 rounded-[0.5rem] px-[0.6rem] py-[0.2rem] absolute top-[0.6rem] left-[0.6rem]">Atual</span>
-              </div>
-            ))}
         </div>
 
-        {dropTarget(true)}
+        <div className="w-full flex items-center justify-between gap-[1rem]">
+          {maxFiles !== undefined && (
+            <span className={`text-[1.3rem] shrink-0 ${remaining === 0 ? "text-destructive font-semibold" : "text-muted-foreground"}`}>
+              {used} de {maxFiles} imagens
+            </span>
+          )}
+
+          {rejected > 0 && (
+            <span className="text-[1.3rem] text-destructive">
+              {rejected === 1 ? "1 arquivo ignorado" : `${rejected} arquivos ignorados`} — limite de {maxFiles} imagens
+            </span>
+          )}
+        </div>
+
+        {remaining > 0 ? (
+          dropTarget(true)
+        ) : (
+          <div className="min-h-[9rem] h-[9rem] w-full flex items-center justify-center border-dashed border-2 border-border rounded-[1rem] text-[1.4rem] text-muted-foreground">
+            Limite de {maxFiles} imagens atingido — remova uma para adicionar outra
+          </div>
+        )}
       </div>
     );
   }
