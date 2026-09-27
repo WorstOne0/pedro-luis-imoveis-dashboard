@@ -1,26 +1,28 @@
-"use client";
-
 // Next
-import { Poppins } from "next/font/google";
-// Services
-import { ThemeProvider } from "@/services";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+// Components
+import Providers from "./providers";
 // Styles
-import "@/styles/global.css";
+import "@/styles/index.css";
 
-// Poppins has no variable font on Google Fonts, so the weights actually
-// used have to be listed explicitly.
-const poppins = Poppins({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700", "800"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+// Server component on purpose: "use client" here would silently drop metadata.
+export const metadata: Metadata = {
+  title: { default: "Painel · Pedro Luis Imóveis", template: "%s · Painel Pedro Luis" },
+  icons: { icon: "/logo/icon.png" },
+  // An admin panel has nothing for a search engine.
+  robots: { index: false, follow: false },
+};
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-        <body className={`h-full w-full flex ${poppins.className} antialiased`}>{children}</body>
-      </ThemeProvider>
+    // suppressHydrationWarning covers the class next-themes puts on <html>.
+    <html lang="pt-BR" suppressHydrationWarning className={inter.variable}>
+      <body className="h-full w-full flex">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

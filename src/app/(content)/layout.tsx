@@ -1,28 +1,22 @@
 "use client";
 
 // Components
-import { NavBar, PageHeader, SearchModal } from "@/components";
-// Services
-import { MapProvider, AuthGuard } from "@/services";
+import AuthGuard from "./_components/auth_guard";
+import NavBar from "./_components/nav_bar";
+import PageHeader from "./_components/page_header";
+import SearchModal from "./_components/search_modal";
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+// A fixed shell: the sidebar and the header stay put and only the content pane scrolls.
+export default function ContentLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <AuthGuard>
-      {/* Fixed app shell on --surface: the sidebar and header stay put and only
-          the content pane scrolls. */}
-      <div className="h-full w-full flex gap-[0.8rem] bg-surface p-[0.8rem]">
+      <div className="h-full w-full p-[1rem] flex gap-[1rem] bg-background">
         <NavBar />
 
-        <div className="h-full min-w-0 grow flex flex-col pt-[0.6rem]">
+        <div className="h-full min-w-0 grow flex flex-col">
           <PageHeader />
 
-          <div className="min-h-0 min-w-0 grow">
-            <MapProvider>{children}</MapProvider>
-          </div>
+          <div className="min-h-0 min-w-0 grow">{children}</div>
         </div>
 
         <SearchModal />

@@ -1,21 +1,24 @@
 "use client";
 
 // Next
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-// Components
-import { Card, Pagination, Input, SelectPlain } from "@/components";
-import RealEstateCard from "@/app/(content)/real_estate/_components/real_estate_card";
+// Models
+import { PROPERTY_TYPES, type RealEstate } from "@/core/models";
+// Hooks
 import { useApiFetch, useDebounce } from "@/hooks";
-import { PROPERTY_TYPE_OPTIONS } from "@/lib/real_estate_options";
-import type { RealEstate } from "@/store/useRealEstateStore";
-//
-import { FaSortAmountDown } from "react-icons/fa";
-import { IoAdd, IoSearch } from "react-icons/io5";
+// Components
+import { EmptyState, FieldWrapper, Input, Pagination, SectionHeader, SelectPlain } from "@/components";
+import RealEstateCard from "./_components/real_estate_card";
+// Icons
+import { MdOutlineSearch, MdOutlineSort, MdOutlineSearchOff } from "react-icons/md";
 
 const PAGE_SIZE = 12;
 
-const SORTS = [
+// Module scope: a `= []` default is a new array every render.
+const EMPTY: RealEstate[] = [];
+
+const SORT_OPTIONS = [
   { value: "recent", label: "Mais recentes" },
   { value: "oldest", label: "Mais antigos" },
   { value: "price_desc", label: "Maior preço" },
@@ -23,7 +26,9 @@ const SORTS = [
   { value: "area_desc", label: "Maior área" },
 ];
 
-export default function RealEstate() {
+const TYPE_OPTIONS = [{ value: "", label: "Todos os tipos" }, ...Object.entries(PROPERTY_TYPES).map(([value, { label }]) => ({ value, label }))];
+
+export default function RealEstatePage() {
   const router = useRouter();
 
   const [search, setSearch] = useState("");
@@ -41,24 +46,27 @@ export default function RealEstate() {
     return params.toString();
   }, [debouncedSearch, type, sort]);
 
-  const { data: realEstateList = [], isLoading } = useApiFetch<RealEstate[]>(`/real_estate?${query}`);
+  const { data, isLoading } = useApiFetch<RealEstate[]>(`/real_estate?${query}`);
+  const realEstateList = data ?? EMPTY;
 
-  const totalPages = Math.max(Math.ceil(realEstateList.length / PAGE_SIZE), 1);
-  // Filtering can shrink the list below the current page; clamp so the grid
-  // never ends up empty while pages still exist.
+  const count = realEstateList.length;
+  const totalPages = Math.max(Math.ceil(count / PAGE_SIZE), 1);
+  // A narrower filter can leave the current page past the end; clamp so the grid never goes blank.
   const page = Math.min(currentPage, totalPages);
   const visible = realEstateList.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
+  const clearFilters = () => {
+    setSearch("");
+    setType("");
+    setCurrentPage(1);
+  };
+
   return (
-    <div className="h-full w-full flex flex-col relative">
-      {/* Search Bar */}
-      <div className="min-h-[5rem] h-[5rem] w-full flex gap-[1rem]">
-        <div className="min-w-0 grow relative">
-          <div className="h-full w-[4rem] absolute top-0 left-0 flex justify-center items-center text-muted-foreground pointer-events-none">
-            <IoSearch size={18} />
-          </div>
+    <div className="h-full w-full flex flex-col gap-[1.2rem]">
+      <div className="h-[4.4rem] w-full shrink-0 flex gap-[1rem]">
+        <FieldWrapper startIcon={<MdOutlineSearch size={18} />} className="h-full min-w-0 grow">
           <Input
-            className="h-full w-full md:text-[1.6rem] rounded-[1rem]"
+            className="h-full"
             placeholder="Pesquisar por título, descrição ou endereço"
             hasStartIcon
             value={search}
@@ -67,7 +75,7 @@ export default function RealEstate() {
               setCurrentPage(1);
             }}
           />
-        </div>
+        </FieldWrapper>
 
         <SelectPlain
           className="h-full w-[22rem] shrink-0"
@@ -77,53 +85,50 @@ export default function RealEstate() {
             setType(value);
             setCurrentPage(1);
           }}
-          options={[{ value: "", label: "Todos os tipos" }, ...PROPERTY_TYPE_OPTIONS]}
+          options={TYPE_OPTIONS}
         />
 
-        <SelectPlain
-          className="h-full w-[20rem] shrink-0"
-          placeholder="Ordenar"
-          value={sort}
-          onChange={setSort}
-          options={SORTS}
-          startIcon={<FaSortAmountDown />}
-        />
+        <SelectPlain className="h-full w-[20rem] shrink-0" placeholder="Ordenar" value={sort} onChange={setSort} options={SORT_OPTIONS} startIcon={<MdOutlineSort size={18} />} />
       </div>
 
-      {/* List */}
-      <div className="flex justify-between mt-[1.5rem] mb-[0.5rem]">
-        <div className="flex items-baseline gap-[1rem]">
-          <span className="text-[3.2rem] font-bold">{realEstateList.length}</span>
-          <span className="text-[1.5rem] text-muted-foreground">{realEstateList.length === 1 ? "imóvel encontrado" : "imóveis encontrados"}</span>
-        </div>
-      </div>
+      <SectionHeader label={isLoading ? "Carregando" : `${count} ${count === 1 ? "imóvel" : "imóveis"}`} />
 
-      {/* 32rem, not 50rem: the preview card is far narrower than the old one,
-          and the wider track left a single column on a 1000px pane. */}
-      <div className="min-h-0 grow w-full grid grid-cols-[repeat(auto-fill,minmax(32rem,1fr))] auto-rows-min gap-[1.5rem] overflow-y-auto">
-        {isLoading && <span className="italic text-gray-500">Carregando imóveis...</span>}
+      <div className="min-h-0 grow w-full pb-[0.4rem] grid grid-cols-[repeat(auto-fill,minmax(30rem,1fr))] auto-rows-min gap-[1.2rem] overflow-y-auto scrollbar-thin">
+        {isLoading &&
+          [0, 1, 2, 3].map((index) => (
+            <div key={`skeleton_${index}`} className="surface overflow-hidden">
+              <div className="h-[17rem] bg-surface-3 animate-pulse" />
+              <div className="p-[1.4rem] flex flex-col gap-[0.8rem]">
+                <div className="h-[2.2rem] w-[40%] rounded-control bg-surface-3 animate-pulse" />
+                <div className="h-[1.6rem] w-[80%] rounded-control bg-surface-3 animate-pulse" />
+              </div>
+            </div>
+          ))}
 
-        {!isLoading && realEstateList.length === 0 && <span className="italic text-gray-500">Nenhum imóvel encontrado.</span>}
+        {!isLoading && count === 0 && (
+          <EmptyState
+            Icon={MdOutlineSearchOff}
+            title="Nenhum imóvel encontrado"
+            subtitle="Amplie a busca ou limpe os filtros."
+            className="col-span-full"
+            action={
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="h-[3.6rem] px-[1.4rem] rounded-control border border-line bg-surface text-[1.4rem] font-semibold text-title hover:bg-surface-2 cursor-pointer"
+              >
+                Limpar filtros
+              </button>
+            }
+          />
+        )}
 
         {visible.map((item) => (
-          <RealEstateCard
-            key={`real_estate_card_${item._id}`}
-            realEstate={item}
-            variant="preview"
-            onClickCallback={() => router.push(`/real_estate/edit/${item._id}`)}
-          />
+          <RealEstateCard key={item._id} realEstate={item} onClickCallback={() => router.push(`/real_estate/edit/${item._id}`)} />
         ))}
       </div>
 
-      {/* No floating add button: the page header carries the primary action, and
-          two of them competing on one screen is one too many. */}
-      <Pagination
-        currentPage={page}
-        setCurrentPage={setCurrentPage}
-        totalPages={totalPages}
-        totalItems={realEstateList.length}
-        pageSize={PAGE_SIZE}
-      />
+      <Pagination currentPage={page} setCurrentPage={setCurrentPage} totalPages={totalPages} totalItems={count} pageSize={PAGE_SIZE} />
     </div>
   );
 }

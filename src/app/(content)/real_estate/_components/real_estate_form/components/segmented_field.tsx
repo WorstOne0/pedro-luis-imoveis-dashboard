@@ -1,18 +1,10 @@
 "use client";
 
-import { useFormContext, Controller } from "react-hook-form";
-import { FormLabel } from "@/components";
+// Next
+import { Controller, useFormContext } from "react-hook-form";
 
-/** Two or three mutually exclusive options shown side by side, e.g. Venda / Aluguel. */
-export default function SegmentedField({
-  name,
-  label,
-  options,
-}: {
-  name: string;
-  label: string;
-  options: { value: string; label: string }[];
-}) {
+// Two or three exclusive options side by side, e.g. Venda / Aluguel.
+export default function SegmentedField({ name, label, options }: { name: string; label: string; options: { value: string; label: string }[] }) {
   const { control } = useFormContext();
 
   return (
@@ -20,10 +12,10 @@ export default function SegmentedField({
       control={control}
       name={name}
       render={({ field, fieldState }) => (
-        <div className="w-full flex flex-col gap-[0.8rem]">
-          <FormLabel className="text-[1.4rem] text-muted-foreground px-[0.4rem]">{label}</FormLabel>
+        <div className="w-full flex flex-col gap-[0.6rem]">
+          <span className="text-[1.3rem] font-semibold text-body">{label}</span>
 
-          <div className="h-[5rem] w-full flex items-center rounded-[0.8rem] border border-input p-[0.3rem]">
+          <div className="h-[4.4rem] w-full p-[0.3rem] flex items-center gap-[0.2rem] rounded-control bg-surface-3">
             {options.map((option) => {
               const isSelected = field.value === option.value;
 
@@ -33,10 +25,8 @@ export default function SegmentedField({
                   type="button"
                   aria-pressed={isSelected}
                   onClick={() => field.onChange(option.value)}
-                  className={`
-                    h-full min-w-0 grow rounded-[0.6rem] text-[1.5rem] cursor-pointer transition-colors
-                    ${isSelected ? "bg-card font-semibold shadow-sm border border-border" : "text-muted-foreground hover:text-foreground"}
-                  `}
+                  className={`h-full min-w-0 grow rounded-[0.4rem] text-[1.4rem] transition-colors cursor-pointer
+                    ${isSelected ? "bg-surface font-semibold text-title outline outline-line" : "text-meta hover:text-title"}`}
                 >
                   {option.label}
                 </button>
@@ -44,7 +34,7 @@ export default function SegmentedField({
             })}
           </div>
 
-          {fieldState.error && <span className="text-[1.3rem] text-destructive px-[0.4rem]">{fieldState.error.message}</span>}
+          {fieldState.error && <span className="text-[1.3rem] text-negative">{fieldState.error.message}</span>}
         </div>
       )}
     />

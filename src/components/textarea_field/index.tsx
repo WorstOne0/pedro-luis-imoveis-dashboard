@@ -3,13 +3,11 @@
 // Next
 import { useFormContext } from "react-hook-form";
 // Components
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components";
-import { Textarea } from "@/components/ui/textarea";
-import FieldWrapper from "@/components/field_wrapper";
-//
-import { cn } from "@/lib/utils";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "../form";
+import FieldWrapper from "../field_wrapper";
+import Textarea from "../textarea";
 
-interface TextareaFieldProps {
+type TextareaFieldProps = {
   name: string;
   label: string;
   placeholder?: string;
@@ -17,7 +15,7 @@ interface TextareaFieldProps {
   rows?: number;
   startIcon?: React.ReactNode;
   endIcon?: React.ReactNode;
-}
+};
 
 export default function TextareaField({ name, label, placeholder = "", className, rows = 6, startIcon, endIcon }: TextareaFieldProps) {
   const { control } = useFormContext();
@@ -28,12 +26,12 @@ export default function TextareaField({ name, label, placeholder = "", className
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel className="text-[1.4rem] text-muted-foreground px-[0.4rem]">{label}</FormLabel>
+          <FormLabel>{label}</FormLabel>
 
           <FieldWrapper startIcon={startIcon} endIcon={endIcon}>
             <FormControl>
               <Textarea
-                className={cn("rounded-[0.8rem]", className)}
+                className={className}
                 placeholder={placeholder}
                 rows={rows}
                 hasStartIcon={Boolean(startIcon)}
@@ -44,7 +42,7 @@ export default function TextareaField({ name, label, placeholder = "", className
             </FormControl>
           </FieldWrapper>
 
-          <FormMessage className="text-[1.4rem] px-[0.4rem]" />
+          <FormMessage />
         </FormItem>
       )}
     />

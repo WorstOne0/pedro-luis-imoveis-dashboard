@@ -1,0 +1,25 @@
+@layer base {
+  /* 1rem = 10px, so sizes read straight off the design: text-[1.5rem] is 15px. */
+  :root {
+    font-size: 62.5%;
+  }
+
+  /* A fixed app shell: only inner panes scroll. Without the overflow rule, opening a Radix select
+     locked body scroll and shifted the whole layout sideways. */
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-size: 1.5rem;
+    color: var(--body);
+    background: var(--background);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  * {
+    border-color: var(--line);
+  }
+}

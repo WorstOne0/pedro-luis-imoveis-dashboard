@@ -1,16 +1,7 @@
-"use client";
-
 // Next
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { redirect } from "next/navigation";
 
+// AuthGuard sends anyone without a session on to the login screen.
 export default function Home() {
-  //
-  const router = useRouter();
-
-  useEffect(() => {
-    router.push("/login");
-  }, [router]);
-
-  return <div className="h-full w-full"></div>;
+  redirect("/dashboard");
 }

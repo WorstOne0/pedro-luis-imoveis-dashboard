@@ -1,15 +1,14 @@
 "use client";
 
 // Next
-import { useFormContext } from "react-hook-form";
 import { useEffect } from "react";
+import { useFormContext } from "react-hook-form";
 // Components
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input } from "@/components";
-import FieldWrapper from "@/components/field_wrapper";
-//
-import { cn } from "@/lib/utils";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "../form";
+import FieldWrapper from "../field_wrapper";
+import Input from "../input";
 
-interface InputFieldProps {
+type InputFieldProps = {
   name: string;
   label: string;
   type?: string;
@@ -18,18 +17,9 @@ interface InputFieldProps {
   autoFocus?: boolean;
   startIcon?: React.ReactNode;
   endIcon?: React.ReactNode;
-}
+};
 
-export default function InputField({
-  name,
-  label,
-  type = "text",
-  placeholder = "",
-  className,
-  autoFocus = false,
-  startIcon,
-  endIcon,
-}: InputFieldProps) {
+export default function InputField({ name, label, type = "text", placeholder = "", className, autoFocus = false, startIcon, endIcon }: InputFieldProps) {
   const { control, setFocus } = useFormContext();
 
   useEffect(() => {
@@ -42,29 +32,25 @@ export default function InputField({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel className="text-[1.4rem] text-muted-foreground px-[0.4rem]">{label}</FormLabel>
+          <FormLabel>{label}</FormLabel>
 
           <FieldWrapper startIcon={startIcon} endIcon={endIcon}>
             <FormControl>
               <Input
-                // Height lives here rather than at every call site. The login
-                // page passed no className and so rendered noticeably smaller
-                // inputs than the rest of the app.
-                className={cn("h-[5rem] md:text-[1.6rem] rounded-[0.8rem]", className)}
+                className={className}
                 type={type}
                 placeholder={placeholder}
                 hasStartIcon={Boolean(startIcon)}
                 hasEndIcon={Boolean(endIcon)}
                 {...field}
-                // A number input hands back a string; coerce so zod does not
-                // have to and the form value stays the right type.
+                // A number input hands back a string; coerced here so the form value keeps its type.
                 onChange={(event) => field.onChange(type === "number" ? event.target.valueAsNumber : event.target.value)}
                 value={field.value ?? ""}
               />
             </FormControl>
           </FieldWrapper>
 
-          <FormMessage className="text-[1.4rem] px-[0.4rem]" />
+          <FormMessage />
         </FormItem>
       )}
     />

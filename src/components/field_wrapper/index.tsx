@@ -1,14 +1,9 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+// Utils
+import { cn } from "@/utils";
 
-/**
- * Positions optional prefix/suffix icons over a form control.
- *
- * Must sit *outside* FormControl, never around it: FormControl is a Radix Slot
- * that forwards id/aria-* onto its single child, so wrapping it here would hang
- * those attributes on this div instead of on the real input.
- */
+// Sits outside FormControl, never around it: the Slot would hang the input's id and aria-* on this div.
 export default function FieldWrapper({
   startIcon,
   endIcon,
@@ -17,23 +12,19 @@ export default function FieldWrapper({
 }: {
   startIcon?: React.ReactNode;
   endIcon?: React.ReactNode;
-  // Sizing belongs here, not on the control: this div is what a flex parent
-  // measures, so a width left on the inner control is ignored and the wrapper
-  // keeps its default w-full.
+  // Sizing goes here, not on the control: this div is the flex item a parent measures.
   className?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className={cn("w-full relative", className)}>
       {startIcon && (
-        <div className="h-full w-[4rem] top-0 left-0 absolute flex justify-center items-center text-gray-500 pointer-events-none z-10">{startIcon}</div>
+        <div className="h-full w-[4.4rem] flex items-center justify-center text-soft absolute top-0 left-0 pointer-events-none z-10">{startIcon}</div>
       )}
 
       {children}
 
-      {endIcon && (
-        <div className="h-full w-[4rem] top-0 right-0 absolute flex justify-center items-center text-gray-500 pointer-events-none z-10">{endIcon}</div>
-      )}
+      {endIcon && <div className="h-full w-[4.4rem] flex items-center justify-center text-soft absolute top-0 right-0 pointer-events-none z-10">{endIcon}</div>}
     </div>
   );
 }

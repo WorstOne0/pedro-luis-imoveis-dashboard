@@ -1,116 +1,143 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 // Next
-import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import Cookies from "js-cookie";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+// Controllers
+import { useAuthController } from "@/core/controllers";
+// Services
+import { api } from "@/services";
 // Components
-import { Checkbox, Form, InputField } from "@/components";
+import { Form, InputField } from "@/components";
 // Icons
 import { FaGithub } from "react-icons/fa";
-import { useAuthStore } from "@/store";
+import { MdOutlineLock, MdOutlineMail } from "react-icons/md";
+// Assets
+import logo from "@/../public/logo/logo.png";
 
-const FormSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, {
-    message: "Password must be at least 6 characters long",
-  }),
+const LoginSchema = z.object({
+  email: z.string().email("Informe um e-mail válido"),
+  password: z.string().min(6, "A senha tem ao menos 6 caracteres"),
 });
 
+type LoginValues = z.infer<typeof LoginSchema>;
+
 export default function Login() {
-  //
   const router = useRouter();
-  const { login, isAuthenticated } = useAuthStore((state) => state);
+  const isAuthenticated = useAuthController((state) => state.isAuthenticated);
+
+  const [error, setError] = useState<string | null>(null);
+
+  const form = useForm<LoginValues>({ resolver: zodResolver(LoginSchema), defaultValues: { email: "", password: "" } });
 
   useEffect(() => {
     if (isAuthenticated) router.replace("/dashboard");
   }, [isAuthenticated, router]);
 
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
+  const onSubmit = async (data: LoginValues) => {
+    setError(null);
 
-  const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    const success = await login(data.email, data.password);
-    if (!success) return;
+    try {
+      const response = await api.post("/login", data);
+      Cookies.set("accessToken", response.data.accessToken, { expires: 7 });
 
-    router.push("/dashboard");
+      router.push("/dashboard");
+    } catch {
+      setError("E-mail ou senha inválidos.");
+    }
   };
 
   return (
-    <div className="h-full w-full flex">
-      {/* Left */}
-      <div className="h-full w-1/2 p-[1rem]">
-        <div className="h-full w-full bg-primary rounded-[0.8rem]"></div>
+    <div className="h-full w-full flex bg-background">
+      <div className="h-full w-1/2 p-[1rem] hidden lg:block">
+        <div className="h-full w-full px-[4.8rem] py-[3.2rem] flex flex-col justify-between rounded-card bg-action text-on-action">
+          {/* White tile: the logo's navy disappears on the brand colour. */}
+          <div className="flex items-center gap-[1.2rem]">
+            <span className="h-[4.8rem] w-[4.8rem] p-[0.6rem] shrink-0 flex items-center justify-center rounded-control bg-white">
+              <img src={logo.src} alt="" className="h-full w-full object-contain" />
+            </span>
+
+            <span className="flex flex-col">
+              <span className="text-[1.7rem] font-bold">Pedro Luis Imóveis</span>
+              <span className="text-[1.3rem] opacity-75">Painel administrativo</span>
+            </span>
+          </div>
+
+          <div className="max-w-[46rem] flex flex-col gap-[1.2rem]">
+            <span className="text-[3.2rem] font-bold leading-[1.15] tracking-[-0.015em]">Cadastre, edite e acompanhe os imóveis do site.</span>
+            <span className="text-[1.5rem] leading-[1.6] opacity-80">Os imóveis salvos aqui aparecem no site público, no mapa e na busca.</span>
+          </div>
+
+          <span className="text-[1.3rem] opacity-75">Cascavel · Paraná</span>
+        </div>
       </div>
-      {/* Right */}
-      <div className="h-full w-1/2 flex flex-col py-[1.5rem]">
-        {/* Header */}
-        <div className="h-[2rem] w-full flex justify-end px-[2rem]">
-          <Link
-            className="h-[2rem] w-[2rem] flex justify-center items-center cursor-pointer"
+
+      <div className="h-full min-w-0 grow px-[3.2rem] py-[2.4rem] flex flex-col">
+        <div className="flex justify-end">
+          <a
             href="https://github.com/WorstOne0"
-            rel="noopener noreferrer"
             target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub"
+            className="h-[3.6rem] w-[3.6rem] flex items-center justify-center rounded-control text-meta hover:text-title hover:bg-surface-2"
           >
-            <FaGithub />
-          </Link>
+            <FaGithub size={18} />
+          </a>
         </div>
 
-        {/* Body */}
-        <div className="min-h-0 grow w-full flex flex-col justify-center items-center">
-          {/* Logo */}
-          <div className="flex flex-col justify-center items-center">
-            <div className="h-[7rem] w-[7rem] bg-red-500 rounded-[0.8rem] mb-[2rem]"></div>
-            <span className="font-bold text-[2.8rem]">Welcome Back to the App</span>
-            <span className="italic text-gray-500 text-[1.6rem]">Enter your username and password to continue</span>
-          </div>
-          {/* Login */}
-          <div className="w-[60%] mt-[3rem]">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)}>
-                <InputField name="email" label="Email" />
-                <div className="h-[2rem]"></div>
-                <InputField name="password" label="Password" type="password" />
+        <div className="min-h-0 grow flex items-center justify-center">
+          <div className="w-full max-w-[44rem] flex flex-col gap-[2.4rem]">
+            <div className="flex flex-col gap-[0.6rem]">
+              <span className="text-[2.6rem] font-bold text-title tracking-[-0.01em]">Entrar</span>
+              <span className="text-[1.5rem] text-meta">Use o e-mail e a senha da sua conta.</span>
+            </div>
 
-                <div className="w-full flex justify-between mt-[1rem]">
-                  <div className="flex items-center cursor-pointer">
-                    <Checkbox className="h-[1.3rem] w-[1.3rem] rounded-[0.3rem]" id="remember" />
-                    <label className="ml-[0.5rem] text-gray-500 text-[1.5rem] select-none" htmlFor="remember">
-                      Lembrar de mim
-                    </label>
-                  </div>
-                  <div className="text-primary font-bold text-[1.5rem] cursor-pointer">Esqueci minha senha</div>
-                </div>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-[1.6rem]">
+                <InputField
+                  name="email"
+                  label="E-mail"
+                  type="email"
+                  placeholder="voce@email.com"
+                  className="h-[5rem] text-[1.6rem]"
+                  startIcon={<MdOutlineMail size={20} />}
+                  autoFocus
+                />
+                <InputField
+                  name="password"
+                  label="Senha"
+                  type="password"
+                  placeholder="••••••"
+                  className="h-[5rem] text-[1.6rem]"
+                  startIcon={<MdOutlineLock size={20} />}
+                />
+
+                {error && <span className="px-[1.2rem] py-[1rem] rounded-control bg-negative-soft text-[1.4rem] text-negative">{error}</span>}
 
                 <button
-                  className="w-full flex justify-center items-center bg-primary rounded-[0.8rem] py-[1.2rem] mt-[3.5rem] cursor-pointer"
                   type="submit"
+                  disabled={form.formState.isSubmitting}
+                  className="h-[5.2rem] mt-[0.8rem] flex items-center justify-center rounded-control bg-action text-[1.7rem] font-bold text-on-action hover:bg-action-hover disabled:opacity-60 cursor-pointer"
                 >
-                  <span className="text-[1.8rem] text-white font-bold select-none">Entrar</span>
+                  {form.formState.isSubmitting ? "Entrando..." : "Entrar"}
                 </button>
               </form>
             </Form>
           </div>
-          {/* Singup */}
-          <div></div>
         </div>
 
-        {/* Footer */}
-        <div className="h-[2rem] w-full flex justify-between px-[2rem]">
-          <span className="text-gray-500 text-[1.4rem]"> 2025 Pedro Luis Imóveis Inc. All rights reserved</span>
+        <div className="flex flex-wrap items-center justify-between gap-x-[2rem] gap-y-[0.6rem] text-[1.3rem] text-meta">
+          <span>© {new Date().getFullYear()} Pedro Luis Imóveis. Todos os direitos reservados.</span>
 
-          <div className="flex">
-            <span className="text-gray-500 text-[1.4rem] mr-[2rem]">Privacy Policy</span>
-            <span className="text-gray-500 text-[1.4rem]">Term & Conditions</span>
-          </div>
+          <span className="flex gap-[2rem]">
+            <span>Política de privacidade</span>
+            <span>Termos e condições</span>
+          </span>
         </div>
       </div>
     </div>
