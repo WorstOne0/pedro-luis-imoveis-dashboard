@@ -68,12 +68,13 @@
   --attention-soft: var(--amber-1);
   --whatsapp: var(--green-whatsapp);
 
-  /* Semantic: charts — one family, darkest first */
+  /* Semantic: charts — one family, darkest first; accent is the contrasting second series */
   --chart-1: var(--navy-5);
   --chart-2: var(--navy-4);
   --chart-3: var(--navy-3);
   --chart-4: var(--navy-2);
   --chart-5: var(--zinc-300);
+  --chart-accent: var(--red-2);
 
   /* Metrics */
   --card-radius: 0.8rem;
@@ -112,6 +113,7 @@
   --chart-3: var(--navy-2);
   --chart-4: var(--navy-1);
   --chart-5: var(--zinc-550);
+  --chart-accent: var(--red-3);
 
   --float-shadow: 0 0.1rem 0.2rem rgb(0 0 0 / 0.3), 0 0.6rem 1.6rem rgb(0 0 0 / 0.35);
   --stripe: color-mix(in srgb, var(--action) 8%, transparent);

@@ -31,11 +31,11 @@ export default function HeaderActions({ children }: { children?: React.ReactNode
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="h-[4rem] w-[26rem] px-[1.2rem] hidden lg:flex items-center gap-[0.8rem] rounded-control border border-line bg-surface text-meta hover:bg-surface-2 cursor-pointer"
+        className="h-[4rem] w-[28rem] px-[1.2rem] hidden lg:flex items-center gap-[0.8rem] rounded-control border border-line bg-surface text-meta hover:bg-surface-2 cursor-pointer"
       >
         <MdOutlineSearch size={18} className="shrink-0" />
-        <span className="min-w-0 grow text-left text-[1.4rem] truncate">Buscar imóvel, código...</span>
-        <span className="h-[2.2rem] px-[0.6rem] flex items-center rounded-[0.4rem] bg-surface-2 text-[1.1rem] font-semibold">CTRL K</span>
+        <span className="min-w-0 grow text-left text-[1.4rem] truncate">Buscar imóvel</span>
+        <span className="shrink-0 text-[1.1rem] font-semibold tracking-[0.04em] whitespace-nowrap text-soft">CTRL + K</span>
       </button>
 
       <button

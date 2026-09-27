@@ -60,7 +60,10 @@ public/logo/                       logo, full_logo, icon.png
 - Form controls belong inside `<Form>`; `InputField` / `SelectField` read from
   `useFormContext`, so they break outside it. Outside a form use `SelectPlain`.
 - Colours only from the roles in `styles/tokens.css`; Tailwind's own palette is
-  off. Charts take `var(--chart-1…5)`.
+  off. Charts take `var(--chart-1…5)`, plus `var(--chart-accent)` for a
+  contrasting second series.
+- The dashboard page must fit one screen at 1440×790 and up without scrolling;
+  it scrolls rather than squashes below that. Check both sizes after changing it.
 - Sizes use `rem` arbitrary values; root font-size is 62.5%, so `1rem = 10px`.
 
 ## Known gaps
@@ -70,9 +73,9 @@ public/logo/                       logo, full_logo, icon.png
 - `AuthGuard` is client-side only; there is no middleware, so protected pages are
   served and then hidden.
 - Análises, Notificações and Configurações are empty states.
-- The "Visualizações" and "Contatos WhatsApp" tiles and the activity feed are
-  sample data, badged `exemplo`. The growth chart shows an empty state because
-  every listing shares one import date.
+- The dashboard is computed in the browser from `/real_estate`. There are no
+  page-view or WhatsApp-click numbers yet: Firebase analytics is written by the
+  public site but never read back here.
 - No test suite.
 
 ## Extra rules learned the hard way
@@ -86,3 +89,6 @@ public/logo/                       logo, full_logo, icon.png
   the layout sideways.
 - `real_estate_card` is the frontend's `preview` card and backs the form's live
   preview. Restyle one, restyle the other.
+- Under `next dev` (Turbopack) a Tailwind class newly added to a `.tsx` file can
+  be missing from the served CSS until a CSS file is saved. If a new class seems
+  to do nothing, look for it in the stylesheet before debugging the layout.

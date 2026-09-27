@@ -16,7 +16,7 @@ export function ChartContainer({ className = "", children }: { className?: strin
   );
 }
 
-type TooltipEntry = { name?: string | number; value?: number | string; color?: string; payload?: { fill?: string } };
+type TooltipEntry = { name?: string | number; dataKey?: string | number; value?: number | string; color?: string; payload?: { fill?: string } };
 
 // Recharts clones this element and fills active, payload and label itself.
 export function ChartTooltipContent({
@@ -28,7 +28,7 @@ export function ChartTooltipContent({
   active?: boolean;
   payload?: TooltipEntry[];
   label?: string;
-  formatter?: (value: number) => string;
+  formatter?: (value: number, dataKey: string) => string;
 }) {
   if (!active || !payload?.length) return null;
 
@@ -40,7 +40,7 @@ export function ChartTooltipContent({
         <div key={String(entry.name)} className="flex items-center gap-[0.8rem] text-[1.2rem]">
           <span className="h-[0.8rem] w-[0.8rem] shrink-0 rounded-[0.2rem]" style={{ backgroundColor: entry.payload?.fill ?? entry.color }} />
           <span className="grow text-meta">{entry.name}</span>
-          <span className="font-semibold text-title tabular-nums">{formatter ? formatter(Number(entry.value)) : entry.value}</span>
+          <span className="font-semibold text-title tabular-nums">{formatter ? formatter(Number(entry.value), String(entry.dataKey)) : entry.value}</span>
         </div>
       ))}
     </div>
